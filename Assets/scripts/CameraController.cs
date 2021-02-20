@@ -1,8 +1,10 @@
-using System;
+//using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+//using Random = System.Random;
 
 public class CameraController : MonoBehaviour
 {
@@ -17,33 +19,76 @@ public class CameraController : MonoBehaviour
 	public GameObject m_mark;
 	public GameObject m_normal;
 	public GameObject m_sectionNormal;
+	public float distanceBetweenBorderNormals = 0.2f;
 
+	//IEnumerator coroutine;
+
+	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 
 	// Use this for initialization
 	void Start () {
+		m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 		td = transform.Clone();
 	}
 
 	private void Awake()
 	{
 		cam = GetComponent<Camera>();
+
+	}
+
+	private void DrawSectionBorder()
+	{
+		RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if ( Physics.Raycast (ray,out hit,100.0f)) {
+	        if (!m_currentNormals.Any() || Vector3.Distance(m_currentNormals.Last().transform.position,hit.point)>distanceBetweenBorderNormals)
+	        {
+		        //Instantiate(m_mark, tran, Quaternion.identity);
+                var normal =Instantiate(m_normal, hit.point, Quaternion.identity);
+                normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
+                m_currentNormals.Add(normal);
+                normal.transform.up = hit.normal;
+	        }
+        }
+	}
+
+	private void CloseSection()
+	{
+		var sectionPosition = new Vector3(0,0,0);
+        var sectionUp = new Vector3(0,0,0);
+        float i = 0;
+        foreach (var n in m_currentNormals)
+        {
+        	sectionPosition += n.transform.position;
+        	sectionUp += n.transform.up;
+            i++;
+        }
+
+        sectionPosition /= i;
+        sectionUp /= i;
+        sectionUp.Normalize();
+
+        GameObject tf = new GameObject();
+        tf.transform.position = sectionPosition;
+        tf.transform.up = sectionUp;
+
+        var instance = Instantiate(m_sectionNormal, tf.transform);
+        instance.GetComponentInChildren<Renderer>().material.color = m_newColor;
+
+        m_currentNormals.Clear();
+
+        // pick a random color
+        m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 	}
 
 	void Update()
 	{
-		if ( Input.GetMouseButtonDown (0)){
-        	RaycastHit hit;
-        	Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        	if ( Physics.Raycast (ray,out hit,100.0f)) {
-        		//Instantiate(m_mark, tran, Quaternion.identity);
-                var normal =Instantiate(m_normal, hit.point, Quaternion.identity);
-                m_currentNormals.Add(normal);
-                normal.transform.up = hit.normal;
-
-                //Debug.DrawRay(hit.point, -hit.normal,Color.green,5f);
-            }
-        }
+		if (Input.GetMouseButton(0))
+		{
+			DrawSectionBorder();
+		}
 
 		// Rest scene view
         if (Input.GetKey(KeyCode.Space))
@@ -56,43 +101,12 @@ public class CameraController : MonoBehaviour
 		// Close section
 		if (Input.GetKeyUp(KeyCode.Return))
 		{
-			print("Close section");
-			var sectionPosition = new Vector3(0,0,0);
-			var sectionUp = new Vector3(0,0,0);
-			float i = 0;
-			foreach (var n in m_currentNormals)
-			{
-				sectionPosition += n.transform.position;
-				sectionUp += n.transform.up;
-				Debug.Log("n position"+ n.transform.position);
-				Debug.Log("n up"+ n.transform.up);
-				i++;
-			}
-
-			Debug.Log("section position"+ sectionPosition);
-			Debug.Log("section up"+ sectionUp);
-
-			sectionPosition /= i;
-			sectionUp /= i;
-			sectionUp.Normalize();
-
-			Debug.Log("section position"+ sectionPosition);
-			Debug.Log("section up"+ sectionUp);
-
-			GameObject tf = new GameObject();
-			tf.transform.position = sectionPosition;
-			tf.transform.up = sectionUp;
-
-			Instantiate(m_sectionNormal, tf.transform);
-
-			m_currentNormals.Clear();
+			CloseSection();
 		}
 	}
 
 	void FixedUpdate()
 	{
-
-
 		Vector3 move = Vector3.zero;
 		if(Input.GetKey(KeyCode.W))
 			move += Vector3.forward * speed;
