@@ -1,9 +1,14 @@
 //using System;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
 //using Random = System.Random;
 
 public class CameraController : MonoBehaviour
@@ -25,6 +30,13 @@ public class CameraController : MonoBehaviour
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
+	private struct Section
+	{
+		public List<GameObject> borders;
+		public GameObject normal;
+	}
+
+	private List<Section> m_AllSections = new List<Section>();
 
 	// Use this for initialization
 	void Start () {
@@ -74,13 +86,31 @@ public class CameraController : MonoBehaviour
         tf.transform.position = sectionPosition;
         tf.transform.up = sectionUp;
 
-        var instance = Instantiate(m_sectionNormal, tf.transform);
-        instance.GetComponentInChildren<Renderer>().material.color = m_newColor;
+        var normal = Instantiate(m_sectionNormal, tf.transform);
+        normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
+
+        Section s = new Section();
+        s.normal = normal;
+        s.borders = new List<GameObject>(m_currentNormals);
+
+        m_AllSections.Add(s);
 
         m_currentNormals.Clear();
 
         // pick a random color
         m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+	}
+
+	void RemovePreviousSection()
+	{
+		var section = m_AllSections.ElementAt(m_AllSections.Count-1);
+		foreach (var b in section.borders)
+		{
+			Destroy(b);
+		}
+
+		Destroy(section.normal);
+		m_AllSections.RemoveAt(m_AllSections.Count - 1);
 	}
 
 	void Update()
@@ -102,6 +132,12 @@ public class CameraController : MonoBehaviour
 		if (Input.GetKeyUp(KeyCode.Return))
 		{
 			CloseSection();
+		}
+
+		// remove previous section
+		if (Input.GetKeyUp(KeyCode.C))
+		{
+			RemovePreviousSection();
 		}
 	}
 

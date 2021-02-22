@@ -128,6 +128,51 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 751262044031659602, guid: f4b83547bcde441aab25832c20b3040c, type: 3}
   m_PrefabInstance: {fileID: 751262044025555723}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &558960566
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 558960569}
+  - component: {fileID: 558960568}
+  m_Layer: 0
+  m_Name: import
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &558960568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 558960566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3802ac1193874031b0d420063258394, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  meshPath: /Users/hamid.kaloorazi/Downloads/PlayStation - Spyro 2 Riptos Rage -
+    Autumn Plains/Autumn Plains.obj
+--- !u!4 &558960569
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 558960566}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -14.245583, y: -17.46265, z: -3.08}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &568402211 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3029633856635290649, guid: c746c6b344f8b47b4881f2a073c5bc5f, type: 3}
@@ -332,6 +377,7 @@ MonoBehaviour:
   m_mark: {fileID: 568402211}
   m_normal: {fileID: 14493017}
   m_sectionNormal: {fileID: 583699935}
+  distanceBetweenBorderNormals: 0.2
 --- !u!1001 &751262044025555723
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -426,7 +472,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2227516130543213438, guid: 1a29cb1e77b434fa690d33ca80f19c83, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 8.756365
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2227516130543213438, guid: 1a29cb1e77b434fa690d33ca80f19c83, type: 3}
       propertyPath: m_LocalRotation.w
