@@ -3,11 +3,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Security.Cryptography;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using System.IO;
 
 //using Random = System.Random;
 
@@ -47,7 +49,20 @@ public class CameraController : MonoBehaviour
 	private void Awake()
 	{
 		cam = GetComponent<Camera>();
+	}
 
+	void WriteToFile()
+	{
+		// Write the string array to a new file named "WriteLines.txt".
+		using (StreamWriter outputFile = new StreamWriter( "WriteLines.txt"))
+		{
+			foreach (var s in m_AllSections)
+			{
+				var p= s.normal.transform.position;
+				string line = p.x +" "+ p.y+" "+p.z;
+				outputFile.WriteLine(line);
+			}
+		}
 	}
 
 	private void DrawSectionBorder()
@@ -139,6 +154,12 @@ public class CameraController : MonoBehaviour
 		{
 			RemovePreviousSection();
 		}
+
+		// write to file
+		if (Input.GetKeyUp(KeyCode.T))
+		{
+			WriteToFile();
+		}
 	}
 
 	void FixedUpdate()
@@ -206,3 +227,4 @@ public static class TransformUtils {
 	}
 
 }
+
