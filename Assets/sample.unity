@@ -1079,6 +1079,10 @@ MonoBehaviour:
   m_normal: {fileID: 14493017}
   m_sectionNormal: {fileID: 583699935}
   distanceBetweenBorderNormals: 0.2
+  buttonWrite: {fileID: 324845602}
+  buttonUndo: {fileID: 1756735420}
+  buttonResetCam: {fileID: 230176226}
+  buttonFinishSection: {fileID: 1760272768}
 --- !u!1 &1534501820
 GameObject:
   m_ObjectHideFlags: 0

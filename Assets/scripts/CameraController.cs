@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System.IO;
+using UnityEngine.UI;
 
 //using Random = System.Random;
 
@@ -27,6 +28,7 @@ public class CameraController : MonoBehaviour
 	public GameObject m_normal;
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
+	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
 
 	//IEnumerator coroutine;
 
@@ -43,6 +45,10 @@ public class CameraController : MonoBehaviour
 	// Use this for initialization
 	void Start () {
 		m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+		buttonWrite.onClick.AddListener(WriteToFile);
+		buttonFinishSection.onClick.AddListener(CloseSection);
+		buttonUndo.onClick.AddListener(RemovePreviousSection);
+		buttonResetCam.onClick.AddListener(ResetCamera);
 		td = transform.Clone();
 	}
 
@@ -128,6 +134,13 @@ public class CameraController : MonoBehaviour
 		m_AllSections.RemoveAt(m_AllSections.Count - 1);
 	}
 
+	void ResetCamera()
+	{
+		print("Reset camera to home");
+		transform.position = td.position;
+		transform.rotation = td.rotation;
+	}
+
 	void Update()
 	{
 		if (Input.GetMouseButton(0))
@@ -138,9 +151,7 @@ public class CameraController : MonoBehaviour
 		// Rest scene view
         if (Input.GetKey(KeyCode.R))
         {
-        	print("Reset to home");
-        	transform.position = td.position;
-        	transform.rotation = td.rotation;
+        	ResetCamera();
         }
 
 		// Close section
