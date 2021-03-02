@@ -136,7 +136,7 @@ public class CameraController : MonoBehaviour
 		}
 
 		// Rest scene view
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.R))
         {
         	print("Reset to home");
         	transform.position = td.position;
@@ -144,19 +144,19 @@ public class CameraController : MonoBehaviour
         }
 
 		// Close section
-		if (Input.GetKeyUp(KeyCode.Return))
+		if (Input.GetKeyUp(KeyCode.Space))
 		{
 			CloseSection();
 		}
 
 		// remove previous section
-		if (Input.GetKeyUp(KeyCode.C))
+		if (Input.GetKeyUp(KeyCode.F))
 		{
 			RemovePreviousSection();
 		}
 
 		// write to file
-		if (Input.GetKeyUp(KeyCode.T))
+		if (Input.GetKeyUp(KeyCode.O))
 		{
 			WriteToFile();
 		}
