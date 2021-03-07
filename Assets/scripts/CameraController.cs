@@ -29,13 +29,15 @@ public class CameraController : MonoBehaviour
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
-
+	public bool pyramidMode = false;
+	public GameObject pyramid;
 	//IEnumerator coroutine;
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	private struct Section
 	{
+		public GameObject pyramid;
 		public List<GameObject> borders;
 		public GameObject normal;
 	}
@@ -44,7 +46,7 @@ public class CameraController : MonoBehaviour
 
 	// Use this for initialization
 	void Start () {
-		m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+		m_newColor = new Color(Random.value, Random.value, Random.value, 0.1f);
 		buttonWrite.onClick.AddListener(WriteToFile);
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
@@ -87,6 +89,17 @@ public class CameraController : MonoBehaviour
         }
 	}
 
+	private void PyramidUpdate()
+	{
+		RaycastHit hit;
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		if ( Physics.Raycast (ray,out hit,100.0f))
+		{
+			pyramid.transform.position = hit.point;
+			pyramid.transform.up = hit.normal;
+		}
+	}
+
 	private void CloseSection()
 	{
 		var sectionPosition = new Vector3(0,0,0);
@@ -122,6 +135,33 @@ public class CameraController : MonoBehaviour
         m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 	}
 
+
+	private void ClosePyramidSection()
+	{
+		var dummyPyramid = new GameObject();
+
+		dummyPyramid.transform.position = pyramid.transform.position;
+		dummyPyramid.transform.up = pyramid.transform.up;
+
+		var normal = Instantiate(m_sectionNormal,dummyPyramid.transform);
+		var pyramidInstance = Instantiate(pyramid);
+
+		normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
+		pyramidInstance.GetComponentInChildren<Renderer>().material.color = m_newColor;
+
+		Section s = new Section();
+		s.normal = normal;
+		s.borders = new List<GameObject>(m_currentNormals);
+		s.pyramid = pyramidInstance;
+
+		m_AllSections.Add(s);
+
+		m_currentNormals.Clear();
+
+		// pick a random color
+		m_newColor = new Color(Random.value, Random.value, Random.value,0.1f);
+	}
+
 	void RemovePreviousSection()
 	{
 		var section = m_AllSections.ElementAt(m_AllSections.Count-1);
@@ -143,9 +183,30 @@ public class CameraController : MonoBehaviour
 
 	void Update()
 	{
-		if (Input.GetMouseButton(0))
+		if (pyramidMode)
 		{
-			DrawSectionBorder();
+			// update pyramid on body
+			PyramidUpdate();
+
+			// create section
+			if (Input.GetMouseButtonUp(0))
+			{
+				ClosePyramidSection();
+			}
+		}
+		else
+		{
+			// add border normal on click
+			if (Input.GetMouseButton(0))
+            {
+            	DrawSectionBorder();
+            }
+
+			// Close section
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+            	CloseSection();
+            }
 		}
 
 		// Rest scene view
@@ -154,13 +215,7 @@ public class CameraController : MonoBehaviour
         	ResetCamera();
         }
 
-		// Close section
-		if (Input.GetKeyUp(KeyCode.Space))
-		{
-			CloseSection();
-		}
-
-		// remove previous section
+        // remove previous section
 		if (Input.GetKeyUp(KeyCode.F))
 		{
 			RemovePreviousSection();
