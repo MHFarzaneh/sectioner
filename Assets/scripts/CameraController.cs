@@ -29,12 +29,15 @@ public class CameraController : MonoBehaviour
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
+	public Toggle togglePyramidMode;
+	public InputField inputHeight, inputWidth, inputLength;
 	public bool pyramidMode = false;
 	public GameObject pyramid;
 	//IEnumerator coroutine;
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
+	bool isPyramidOnPlane = false;
 	private struct Section
 	{
 		public GameObject pyramid;
@@ -51,12 +54,35 @@ public class CameraController : MonoBehaviour
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
 		buttonResetCam.onClick.AddListener(ResetCamera);
+		togglePyramidMode.onValueChanged.AddListener(ChangePyramidMode);
+		inputHeight.onValueChanged.AddListener(ChangePyramidHeight);
+		inputWidth.onValueChanged.AddListener(ChangePyramidWidth);
+		inputLength.onValueChanged.AddListener(ChangePyramidLength);
 		td = transform.Clone();
 	}
 
 	private void Awake()
 	{
 		cam = GetComponent<Camera>();
+	}
+
+	void ChangePyramidLength(string l)
+	{
+		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(1,1,Convert.ToSingle(l)));
+	}
+	void ChangePyramidHeight(string h)
+	{
+		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(1,Convert.ToSingle(h),1));
+	}
+
+	void ChangePyramidWidth(string w)
+	{
+		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
+	}
+
+	void ChangePyramidMode(bool mode)
+	{
+		pyramidMode = mode;
 	}
 
 	void WriteToFile()
@@ -97,6 +123,13 @@ public class CameraController : MonoBehaviour
 		{
 			pyramid.transform.position = hit.point;
 			pyramid.transform.up = hit.normal;
+			isPyramidOnPlane = true;
+		}
+		else
+		{
+			pyramid.transform.position = Vector3.zero;
+			pyramid.transform.up = Vector3.zero;
+			isPyramidOnPlane = false;
 		}
 	}
 
@@ -138,6 +171,7 @@ public class CameraController : MonoBehaviour
 
 	private void ClosePyramidSection()
 	{
+		if (!isPyramidOnPlane) return;
 		var dummyPyramid = new GameObject();
 
 		dummyPyramid.transform.position = pyramid.transform.position;
@@ -171,6 +205,7 @@ public class CameraController : MonoBehaviour
 		}
 
 		Destroy(section.normal);
+		Destroy(section.pyramid);
 		m_AllSections.RemoveAt(m_AllSections.Count - 1);
 	}
 
