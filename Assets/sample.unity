@@ -2768,6 +2768,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: pyramid
       objectReference: {fileID: 0}
+    - target: {fileID: 8764078678542996145, guid: 481751aac00a64318aa945ebe624f7cb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -21.9
+      objectReference: {fileID: 0}
     - target: {fileID: 9137125891249141229, guid: 481751aac00a64318aa945ebe624f7cb, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 

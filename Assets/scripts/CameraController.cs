@@ -80,6 +80,17 @@ public class CameraController : MonoBehaviour
 		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
 	}
 
+	void RotatePlus()
+	{
+		pyramid.transform.Rotate(Vector3.up * 5);
+	}
+
+
+	void RotateMinus()
+	{
+		pyramid.transform.Rotate(Vector3.up * -5);
+	}
+
 	void ChangePyramidMode(bool mode)
 	{
 		pyramidMode = mode;
@@ -122,13 +133,15 @@ public class CameraController : MonoBehaviour
 		if ( Physics.Raycast (ray,out hit,100.0f))
 		{
 			pyramid.transform.position = hit.point;
-			pyramid.transform.up = hit.normal;
+			pyramid.transform.rotation = Quaternion.FromToRotation(pyramid.transform.up, hit.normal) * pyramid.transform.rotation;
+			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus();
+			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus();
+
 			isPyramidOnPlane = true;
 		}
 		else
 		{
 			pyramid.transform.position = Vector3.zero;
-			pyramid.transform.up = Vector3.zero;
 			isPyramidOnPlane = false;
 		}
 	}
