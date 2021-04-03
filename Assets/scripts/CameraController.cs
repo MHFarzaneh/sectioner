@@ -43,6 +43,7 @@ public class CameraController : MonoBehaviour
 		public GameObject pyramid;
 		public List<GameObject> borders;
 		public GameObject normal;
+		public List<Transform> camPoses;
 	}
 
 	private List<Section> m_AllSections = new List<Section>();
@@ -148,6 +149,9 @@ public class CameraController : MonoBehaviour
 
 	private void CloseSection()
 	{
+		// pick a random color
+		m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+
 		var sectionPosition = new Vector3(0,0,0);
         var sectionUp = new Vector3(0,0,0);
         float i = 0;
@@ -176,14 +180,14 @@ public class CameraController : MonoBehaviour
         m_AllSections.Add(s);
 
         m_currentNormals.Clear();
-
-        // pick a random color
-        m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 	}
 
 
 	private void ClosePyramidSection()
 	{
+		// pick a random color
+		m_newColor = new Color(Random.value, Random.value, Random.value,0.1f);
+
 		if (!isPyramidOnPlane) return;
 		var dummyPyramid = new GameObject();
 
@@ -204,9 +208,6 @@ public class CameraController : MonoBehaviour
 		m_AllSections.Add(s);
 
 		m_currentNormals.Clear();
-
-		// pick a random color
-		m_newColor = new Color(Random.value, Random.value, Random.value,0.1f);
 	}
 
 	void RemovePreviousSection()

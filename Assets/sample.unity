@@ -320,7 +320,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -359, y: 295}
+  m_AnchoredPosition: {x: -487.4, y: 356.4}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &144409228
@@ -683,7 +683,7 @@ GameObject:
   - component: {fileID: 230176227}
   - component: {fileID: 230176226}
   m_Layer: 5
-  m_Name: ResetCaemra (R)
+  m_Name: ResetView (R)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1037,7 +1037,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -359, y: 221.3}
+  m_AnchoredPosition: {x: -485.7, y: 278.1}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &472293881
@@ -2302,7 +2302,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Reset camera (R)
+  m_Text: Reset view (R)
 --- !u!222 &1534501823
 CanvasRenderer:
   m_ObjectHideFlags: 0
