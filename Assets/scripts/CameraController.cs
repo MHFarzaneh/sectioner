@@ -71,18 +71,18 @@ public class CameraController : MonoBehaviour
 
 	void ChangeRectangleLength(string l)
 	{
-		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,1,Convert.ToSingle(l)));
+		rectangle.transform.localScale =new Vector3(rectangle.transform.localScale.x,rectangle.transform.localScale.y,Convert.ToSingle(l));
 		lengthRectangle = Convert.ToSingle(l);
 	}
 	void ChangeRectangleHeight(string h)
 	{
-		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,Convert.ToSingle(h),1));
+		rectangle.transform.localScale = new Vector3(rectangle.transform.localScale.x,Convert.ToSingle(h),rectangle.transform.localScale.z);
 		heigthRectangle = Convert.ToSingle(h);
 	}
 
 	void ChangeRectangleWidth(string w)
 	{
-		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
+		rectangle.transform.localScale = new Vector3(Convert.ToSingle(w),rectangle.transform.localScale.y,rectangle.transform.localScale.z);
 		widthRectangle = Convert.ToSingle(w);
 	}
 
