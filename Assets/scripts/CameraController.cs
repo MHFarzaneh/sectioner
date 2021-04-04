@@ -29,18 +29,19 @@ public class CameraController : MonoBehaviour
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
-	public Toggle togglePyramidMode;
+	public Toggle toggleRectangleMode;
 	public InputField inputHeight, inputWidth, inputLength;
-	public bool pyramidMode = false;
-	public GameObject pyramid;
+	public bool rectangleMode = false;
+	public GameObject rectangle;
 	//IEnumerator coroutine;
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
-	bool isPyramidOnPlane = false;
+	bool isRectangleOnPlane = false;
+	float heigthRectangle=0.01f, widthRectangle=0.01f, lengthRectangle=0.01f;
 	private struct Section
 	{
-		public GameObject pyramid;
+		public GameObject rectangle;
 		public List<GameObject> borders;
 		public GameObject normal;
 		public List<Transform> camPoses;
@@ -55,10 +56,10 @@ public class CameraController : MonoBehaviour
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
 		buttonResetCam.onClick.AddListener(ResetCamera);
-		togglePyramidMode.onValueChanged.AddListener(ChangePyramidMode);
-		inputHeight.onValueChanged.AddListener(ChangePyramidHeight);
-		inputWidth.onValueChanged.AddListener(ChangePyramidWidth);
-		inputLength.onValueChanged.AddListener(ChangePyramidLength);
+		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
+		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
+		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
+		inputLength.onValueChanged.AddListener(ChangeRectangleLength);
 		td = transform.Clone();
 	}
 
@@ -67,34 +68,34 @@ public class CameraController : MonoBehaviour
 		cam = GetComponent<Camera>();
 	}
 
-	void ChangePyramidLength(string l)
+	void ChangeRectangleLength(string l)
 	{
-		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(1,1,Convert.ToSingle(l)));
+		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,1,Convert.ToSingle(l)));
 	}
-	void ChangePyramidHeight(string h)
+	void ChangeRectangleHeight(string h)
 	{
-		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(1,Convert.ToSingle(h),1));
+		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,Convert.ToSingle(h),1));
 	}
 
-	void ChangePyramidWidth(string w)
+	void ChangeRectangleWidth(string w)
 	{
-		pyramid.transform.localScale = Vector3.Scale(pyramid.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
+		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
 	}
 
 	void RotatePlus()
 	{
-		pyramid.transform.Rotate(Vector3.up * 5);
+		rectangle.transform.Rotate(Vector3.up * 5);
 	}
 
 
 	void RotateMinus()
 	{
-		pyramid.transform.Rotate(Vector3.up * -5);
+		rectangle.transform.Rotate(Vector3.up * -5);
 	}
 
-	void ChangePyramidMode(bool mode)
+	void ChangeRectangleMode(bool mode)
 	{
-		pyramidMode = mode;
+		rectangleMode = mode;
 	}
 
 	void WriteToFile()
@@ -127,31 +128,32 @@ public class CameraController : MonoBehaviour
         }
 	}
 
-	private void PyramidUpdate()
+	private void RectangleUpdate()
 	{
 		RaycastHit hit;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		if ( Physics.Raycast (ray,out hit,100.0f))
 		{
-			pyramid.transform.position = hit.point;
-			pyramid.transform.rotation = Quaternion.FromToRotation(pyramid.transform.up, hit.normal) * pyramid.transform.rotation;
+			rectangle.transform.position = hit.point;
+			rectangle.transform.rotation = Quaternion.FromToRotation(rectangle.transform.up, hit.normal) * rectangle.transform.rotation;
 			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus();
 			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus();
 
-			isPyramidOnPlane = true;
+			isRectangleOnPlane = true;
 		}
 		else
 		{
-			pyramid.transform.position = Vector3.zero;
-			isPyramidOnPlane = false;
+			rectangle.transform.position = Vector3.zero;
+			isRectangleOnPlane = false;
 		}
+	}
+
+	void GenerateCamPoses(Section s)
+	{
 	}
 
 	private void CloseSection()
 	{
-		// pick a random color
-		m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
-
 		var sectionPosition = new Vector3(0,0,0);
         var sectionUp = new Vector3(0,0,0);
         float i = 0;
@@ -180,30 +182,34 @@ public class CameraController : MonoBehaviour
         m_AllSections.Add(s);
 
         m_currentNormals.Clear();
+
+        // pick a random color
+        m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+
 	}
 
 
-	private void ClosePyramidSection()
+	private void CloseRectangleSection()
 	{
 		// pick a random color
 		m_newColor = new Color(Random.value, Random.value, Random.value,0.1f);
 
-		if (!isPyramidOnPlane) return;
-		var dummyPyramid = new GameObject();
+		if (!isRectangleOnPlane) return;
+		var dummyRectangle = new GameObject();
 
-		dummyPyramid.transform.position = pyramid.transform.position;
-		dummyPyramid.transform.up = pyramid.transform.up;
+		dummyRectangle.transform.position = rectangle.transform.position;
+		dummyRectangle.transform.up = rectangle.transform.up;
 
-		var normal = Instantiate(m_sectionNormal,dummyPyramid.transform);
-		var pyramidInstance = Instantiate(pyramid);
+		var normal = Instantiate(m_sectionNormal,dummyRectangle.transform);
+		var rectangleInstance = Instantiate(rectangle);
 
 		normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
-		pyramidInstance.GetComponentInChildren<Renderer>().material.color = m_newColor;
+		rectangleInstance.GetComponentInChildren<Renderer>().material.color = m_newColor;
 
 		Section s = new Section();
 		s.normal = normal;
 		s.borders = new List<GameObject>(m_currentNormals);
-		s.pyramid = pyramidInstance;
+		s.rectangle = rectangleInstance;
 
 		m_AllSections.Add(s);
 
@@ -219,7 +225,7 @@ public class CameraController : MonoBehaviour
 		}
 
 		Destroy(section.normal);
-		Destroy(section.pyramid);
+		Destroy(section.rectangle);
 		m_AllSections.RemoveAt(m_AllSections.Count - 1);
 	}
 
@@ -232,15 +238,15 @@ public class CameraController : MonoBehaviour
 
 	void Update()
 	{
-		if (pyramidMode)
+		if (rectangleMode)
 		{
-			// update pyramid on body
-			PyramidUpdate();
+			// update rectangle on body
+			RectangleUpdate();
 
 			// create section
 			if (Input.GetMouseButtonUp(0))
 			{
-				ClosePyramidSection();
+				CloseRectangleSection();
 			}
 		}
 		else

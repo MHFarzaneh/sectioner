@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 16623761}
   - component: {fileID: 16623760}
   m_Layer: 5
-  m_Name: Pyramid Width
+  m_Name: Rectangle Width
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -198,7 +198,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Pyramid Width
+  m_Text: Rectangle Width
 --- !u!222 &16623761
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -298,7 +298,7 @@ GameObject:
   - component: {fileID: 144409229}
   - component: {fileID: 144409228}
   m_Layer: 5
-  m_Name: Pyramid Height
+  m_Name: Rectangle Height
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -356,7 +356,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Pyramid Height
+  m_Text: Rectangle Height
 --- !u!222 &144409229
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -595,7 +595,7 @@ GameObject:
   - component: {fileID: 211708074}
   - component: {fileID: 211708075}
   m_Layer: 5
-  m_Name: Pyramid mode
+  m_Name: Rectangle mode
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -669,7 +669,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &230176224
 GameObject:
   m_ObjectHideFlags: 0
@@ -1015,7 +1015,7 @@ GameObject:
   - component: {fileID: 472293882}
   - component: {fileID: 472293881}
   m_Layer: 5
-  m_Name: Pyramid Length
+  m_Name: Rectangle Length
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1073,7 +1073,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Pyramid Length
+  m_Text: Rectangle Length
 --- !u!222 &472293882
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1152,7 +1152,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Pyramid mode
+  m_Text: Rectangle mode
 --- !u!222 &495431176
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1494,6 +1494,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 715249899}
   m_CullTransparentMesh: 1
+--- !u!1 &740367088 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2214232511308916426, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+  m_PrefabInstance: {fileID: 1803626311}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &750513491
 GameObject:
   m_ObjectHideFlags: 0
@@ -1671,11 +1676,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 827856397}
   m_CullTransparentMesh: 1
---- !u!1 &937671858 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 481751aac00a64318aa945ebe624f7cb, type: 3}
-  m_PrefabInstance: {fileID: 2025817644}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1032262677
 GameObject:
   m_ObjectHideFlags: 0
@@ -2226,12 +2226,12 @@ MonoBehaviour:
   buttonUndo: {fileID: 1756735420}
   buttonResetCam: {fileID: 230176226}
   buttonFinishSection: {fileID: 1760272768}
-  togglePyramidMode: {fileID: 211708075}
+  toggleRectangleMode: {fileID: 211708075}
   inputHeight: {fileID: 1245338609}
   inputWidth: {fileID: 1032262679}
   inputLength: {fileID: 205783470}
-  pyramidMode: 1
-  pyramid: {fileID: 937671858}
+  rectangleMode: 0
+  rectangle: {fileID: 740367088}
 --- !u!1 &1534501820
 GameObject:
   m_ObjectHideFlags: 0
@@ -2553,6 +2553,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1760272766}
   m_CullTransparentMesh: 1
+--- !u!1001 &1803626311
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2214232511308916426, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_Name
+      value: Rectangle
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_RootOrder
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
 --- !u!1001 &1895558290
 PrefabInstance:
   m_ObjectHideFlags: 0
