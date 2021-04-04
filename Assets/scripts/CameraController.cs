@@ -33,12 +33,13 @@ public class CameraController : MonoBehaviour
 	public InputField inputHeight, inputWidth, inputLength;
 	public bool rectangleMode = false;
 	public GameObject rectangle;
+	public GameObject pyramid;
 	//IEnumerator coroutine;
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
-	float heigthRectangle=0.01f, widthRectangle=0.01f, lengthRectangle=0.01f;
+	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f;
 	private struct Section
 	{
 		public GameObject rectangle;
@@ -71,15 +72,18 @@ public class CameraController : MonoBehaviour
 	void ChangeRectangleLength(string l)
 	{
 		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,1,Convert.ToSingle(l)));
+		lengthRectangle = Convert.ToSingle(l);
 	}
 	void ChangeRectangleHeight(string h)
 	{
 		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(1,Convert.ToSingle(h),1));
+		heigthRectangle = Convert.ToSingle(h);
 	}
 
 	void ChangeRectangleWidth(string w)
 	{
 		rectangle.transform.localScale = Vector3.Scale(rectangle.transform.localScale, new Vector3(Convert.ToSingle(w),1,1));
+		widthRectangle = Convert.ToSingle(w);
 	}
 
 	void RotatePlus()
@@ -150,6 +154,19 @@ public class CameraController : MonoBehaviour
 
 	void GenerateCamPoses(Section s)
 	{
+		float lengthPyramid = 0.3f;
+		float widthPyramid = 0.3f;
+		var recScale = s.rectangle.transform.lossyScale;
+		for (float l = -lengthRectangle / (recScale.x*2f); l < lengthRectangle / (recScale.x*2f); l = l + lengthPyramid/recScale.x)
+		{
+			for (float w = -widthRectangle / (recScale.z*2f); w < widthRectangle / (recScale.z*2f); w = w + widthPyramid/recScale.z)
+			{
+				var camPose = Instantiate(pyramid, s.rectangle.transform);
+				camPose.transform.localPosition = new Vector3(l, 0,w);
+				var camScale = camPose.transform.localScale;
+				camPose.transform.localScale = new Vector3(camScale.x/recScale.x,camScale.x/recScale.y, camScale.x/recScale.z);
+			}
+		}
 	}
 
 	private void CloseSection()
@@ -178,6 +195,7 @@ public class CameraController : MonoBehaviour
         Section s = new Section();
         s.normal = normal;
         s.borders = new List<GameObject>(m_currentNormals);
+        GenerateCamPoses(s);
 
         m_AllSections.Add(s);
 
@@ -210,6 +228,7 @@ public class CameraController : MonoBehaviour
 		s.normal = normal;
 		s.borders = new List<GameObject>(m_currentNormals);
 		s.rectangle = rectangleInstance;
+		GenerateCamPoses(s);
 
 		m_AllSections.Add(s);
 
