@@ -157,14 +157,15 @@ public class CameraController : MonoBehaviour
 		float lengthPyramid = 0.3f;
 		float widthPyramid = 0.3f;
 		var recScale = s.rectangle.transform.lossyScale;
-		for (float l = -lengthRectangle / (recScale.x*2f); l < lengthRectangle / (recScale.x*2f); l = l + lengthPyramid/recScale.x)
+		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + lengthPyramid/recScale.z)
 		{
-			for (float w = -widthRectangle / (recScale.z*2f); w < widthRectangle / (recScale.z*2f); w = w + widthPyramid/recScale.z)
+			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + widthPyramid/recScale.x)
 			{
 				var camPose = Instantiate(pyramid, s.rectangle.transform);
-				camPose.transform.localPosition = new Vector3(l, 0,w);
+				camPose.transform.localPosition = new Vector3(w, 0,l);
 				var camScale = camPose.transform.localScale;
 				camPose.transform.localScale = new Vector3(camScale.x/recScale.x,camScale.x/recScale.y, camScale.x/recScale.z);
+				camPose.GetComponentInChildren<Renderer>().material.color = m_newColor;
 			}
 		}
 	}
