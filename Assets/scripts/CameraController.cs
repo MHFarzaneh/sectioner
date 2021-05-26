@@ -181,13 +181,20 @@ public class CameraController : MonoBehaviour
 		{
 			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + widthCam/recScale.x)
 			{
-				var camPose = Instantiate(pyramid, s.rectangle.transform); 
+				var camPose = Instantiate(pyramid, s.rectangle.transform);
 				camPose.transform.localPosition = new Vector3(w, 0,l);
 				var camScale = camPose.transform.localScale;
 				camPose.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
 					(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
 				camPose.GetComponentInChildren<Renderer>().material.color = m_newColor;
-				Debug.Log(lengthCam);
+				// Check collision
+				var sphereCenter = camPose.transform.position+camPose.transform.up*heigthCam;
+				//Debug.DrawLine(sphereCenter,camPose.transform.position, Color.green, 500f);
+				Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*0.8f);
+				if (hitColliders.Length>0)
+				{
+					Destroy(camPose);
+				}
 			}
 		}
 	}
