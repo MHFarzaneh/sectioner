@@ -30,16 +30,17 @@ public class CameraController : MonoBehaviour
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
 	public Toggle toggleRectangleMode;
-	public InputField inputHeight, inputWidth, inputLength;
+	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength;
 	public bool rectangleMode = false;
 	public GameObject rectangle;
 	public GameObject pyramid;
+	public float m_collisionDistance = 0.2f;
 	//IEnumerator coroutine;
 
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
-	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f;
+	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f;
 	private struct Section
 	{
 		public GameObject rectangle;
@@ -61,12 +62,32 @@ public class CameraController : MonoBehaviour
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
 		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
 		inputLength.onValueChanged.AddListener(ChangeRectangleLength);
+		inputCamHeight.onValueChanged.AddListener(ChangeCamHeight);
+		inputCamWidth.onValueChanged.AddListener(ChangeCamWidth);
+		inputCamLength.onValueChanged.AddListener(ChangeCamLength);
 		td = transform.Clone();
 	}
 
 	private void Awake()
 	{
 		cam = GetComponent<Camera>();
+	}
+
+	void ChangeCamLength(string l)
+	{
+		//pyramid.transform.localScale =new Vector3(pyramid.transform.localScale.x,pyramid.transform.localScale.y,Convert.ToSingle(l));
+		lengthCam = Convert.ToSingle(l);
+	}
+	void ChangeCamHeight(string h)
+	{
+		//pyramid.transform.localScale = new Vector3(pyramid.transform.localScale.x,Convert.ToSingle(h),pyramid.transform.localScale.z);
+		heigthCam = Convert.ToSingle(h);
+	}
+
+	void ChangeCamWidth(string w)
+	{
+		//pyramid.transform.localScale = new Vector3(Convert.ToSingle(w),pyramid.transform.localScale.y,pyramid.transform.localScale.z);
+		widthCam = Convert.ToSingle(w);
 	}
 
 	void ChangeRectangleLength(string l)
@@ -154,18 +175,19 @@ public class CameraController : MonoBehaviour
 
 	void GenerateCamPoses(Section s)
 	{
-		float lengthPyramid = 0.3f;
-		float widthPyramid = 0.3f;
+		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
 		var recScale = s.rectangle.transform.lossyScale;
-		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + lengthPyramid/recScale.z)
+		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + lengthCam/recScale.z)
 		{
-			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + widthPyramid/recScale.x)
+			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + widthCam/recScale.x)
 			{
-				var camPose = Instantiate(pyramid, s.rectangle.transform);
+				var camPose = Instantiate(pyramid, s.rectangle.transform); 
 				camPose.transform.localPosition = new Vector3(w, 0,l);
 				var camScale = camPose.transform.localScale;
-				camPose.transform.localScale = new Vector3(camScale.x/recScale.x,camScale.x/recScale.y, camScale.x/recScale.z);
+				camPose.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
+					(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
 				camPose.GetComponentInChildren<Renderer>().material.color = m_newColor;
+				Debug.Log(lengthCam);
 			}
 		}
 	}
