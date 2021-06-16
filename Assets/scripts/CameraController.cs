@@ -30,7 +30,7 @@ public class CameraController : MonoBehaviour
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
 	public Toggle toggleRectangleMode, toggleDoubleCamMode;
-	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap;
+	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap, inputCamDoubleAngle;
 	public bool rectangleMode, doubleCamMode;
 	public GameObject rectangle;
 	public GameObject pyramid;
@@ -40,7 +40,7 @@ public class CameraController : MonoBehaviour
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
-	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f;
+	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f, doubleAngleCam = 10f;
 	private struct Section
 	{
 		public GameObject rectangle;
@@ -67,6 +67,7 @@ public class CameraController : MonoBehaviour
 		inputCamWidth.onValueChanged.AddListener(ChangeCamWidth);
 		inputCamLength.onValueChanged.AddListener(ChangeCamLength);
 		inputCamOverlap.onValueChanged.AddListener(ChangeCamOverlap);
+		inputCamDoubleAngle.onValueChanged.AddListener(ChangeCamDoubleAngle);
 		td = transform.Clone();
 	}
 
@@ -95,6 +96,11 @@ public class CameraController : MonoBehaviour
 	void ChangeCamOverlap(string o)
 	{
 		overlapCam = Convert.ToSingle(o);
+	}
+
+	void ChangeCamDoubleAngle(string a)
+	{
+		doubleAngleCam = Convert.ToSingle(a);
 	}
 
 	void ChangeRectangleLength(string l)
@@ -203,7 +209,7 @@ public class CameraController : MonoBehaviour
 				// Double cam mode
 				if (doubleCamMode)
 				{
-					camPose.transform.rotation *= Quaternion.AngleAxis(10f, camPose.transform.right);
+					camPose.transform.rotation *= Quaternion.AngleAxis(doubleAngleCam, camPose.transform.up);
 
 					var camPose2 = Instantiate(pyramid, s.rectangle.transform);
 					camPose2.transform.localPosition = new Vector3(w, 0,l);
@@ -212,7 +218,7 @@ public class CameraController : MonoBehaviour
 						(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
 					camPose2.GetComponentInChildren<Renderer>().material.color = m_newColor;
 
-					camPose2.transform.rotation *= Quaternion.AngleAxis(-10f, camPose2.transform.right);
+					camPose2.transform.rotation *= Quaternion.AngleAxis(-doubleAngleCam, camPose2.transform.up);
 
 					// Check collision
 					var sphereCenter2 = camPose2.transform.position+camPose2.transform.up*heigthCam;
