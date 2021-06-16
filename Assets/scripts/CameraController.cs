@@ -29,9 +29,9 @@ public class CameraController : MonoBehaviour
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
-	public Toggle toggleRectangleMode;
-	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength;
-	public bool rectangleMode = false;
+	public Toggle toggleRectangleMode, toggleDoubleCamMode;
+	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap;
+	public bool rectangleMode, doubleCamMode;
 	public GameObject rectangle;
 	public GameObject pyramid;
 	public float m_collisionDistance = 0.2f;
@@ -40,7 +40,7 @@ public class CameraController : MonoBehaviour
 	Color m_newColor;
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
-	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f;
+	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f;
 	private struct Section
 	{
 		public GameObject rectangle;
@@ -59,12 +59,14 @@ public class CameraController : MonoBehaviour
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
 		buttonResetCam.onClick.AddListener(ResetCamera);
 		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
+		toggleDoubleCamMode.onValueChanged.AddListener(ChangeDoubleCamMode);
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
 		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
 		inputLength.onValueChanged.AddListener(ChangeRectangleLength);
 		inputCamHeight.onValueChanged.AddListener(ChangeCamHeight);
 		inputCamWidth.onValueChanged.AddListener(ChangeCamWidth);
 		inputCamLength.onValueChanged.AddListener(ChangeCamLength);
+		inputCamOverlap.onValueChanged.AddListener(ChangeCamOverlap);
 		td = transform.Clone();
 	}
 
@@ -88,6 +90,11 @@ public class CameraController : MonoBehaviour
 	{
 		//pyramid.transform.localScale = new Vector3(Convert.ToSingle(w),pyramid.transform.localScale.y,pyramid.transform.localScale.z);
 		widthCam = Convert.ToSingle(w);
+	}
+
+	void ChangeCamOverlap(string o)
+	{
+		overlapCam = Convert.ToSingle(o);
 	}
 
 	void ChangeRectangleLength(string l)
@@ -121,6 +128,11 @@ public class CameraController : MonoBehaviour
 	void ChangeRectangleMode(bool mode)
 	{
 		rectangleMode = mode;
+	}
+
+	void ChangeDoubleCamMode(bool mode)
+	{
+		doubleCamMode = mode;
 	}
 
 	void WriteToFile()
@@ -177,9 +189,9 @@ public class CameraController : MonoBehaviour
 	{
 		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
 		var recScale = s.rectangle.transform.lossyScale;
-		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + lengthCam/recScale.z)
+		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + (lengthCam/recScale.z)/overlapCam)
 		{
-			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + widthCam/recScale.x)
+			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + (widthCam/recScale.x)/overlapCam)
 			{
 				var camPose = Instantiate(pyramid, s.rectangle.transform);
 				camPose.transform.localPosition = new Vector3(w, 0,l);
@@ -187,6 +199,30 @@ public class CameraController : MonoBehaviour
 				camPose.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
 					(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
 				camPose.GetComponentInChildren<Renderer>().material.color = m_newColor;
+
+				// Double cam mode
+				if (doubleCamMode)
+				{
+					camPose.transform.rotation *= Quaternion.AngleAxis(10f, camPose.transform.right);
+
+					var camPose2 = Instantiate(pyramid, s.rectangle.transform);
+					camPose2.transform.localPosition = new Vector3(w, 0,l);
+					var camScale2 = camPose2.transform.localScale;
+					camPose2.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
+						(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
+					camPose2.GetComponentInChildren<Renderer>().material.color = m_newColor;
+
+					camPose2.transform.rotation *= Quaternion.AngleAxis(-10f, camPose2.transform.right);
+
+					// Check collision
+					var sphereCenter2 = camPose2.transform.position+camPose2.transform.up*heigthCam;
+					//Debug.DrawLine(sphereCenter,camPose.transform.position, Color.green, 500f);
+					Collider[] hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*0.8f);
+					if (hitColliders2.Length>0)
+					{
+						Destroy(camPose2);
+					}
+				}
 				// Check collision
 				var sphereCenter = camPose.transform.position+camPose.transform.up*heigthCam;
 				//Debug.DrawLine(sphereCenter,camPose.transform.position, Color.green, 500f);
@@ -235,7 +271,6 @@ public class CameraController : MonoBehaviour
         m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 
 	}
-
 
 	private void CloseRectangleSection()
 	{
