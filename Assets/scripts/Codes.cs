@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 //using Random = System.Random;
 
-public class CameraController : MonoBehaviour
+public class Codes : MonoBehaviour
 {
 	[SerializeField] float speed = 0.5f;
 	[SerializeField] float sensitivity = 1.0f;
@@ -401,6 +401,7 @@ public class CameraController : MonoBehaviour
 		}
 	}
 
+	/*
 	void FixedUpdate()
 	{
 		Vector3 move = Vector3.zero;
@@ -430,7 +431,7 @@ public class CameraController : MonoBehaviour
 			rot.eulerAngles += dif * sensitivity;
 			transform.rotation = rot;
 		}
-	}
+	}*/
 }
 
 public struct TransformData
