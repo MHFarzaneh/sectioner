@@ -28,10 +28,10 @@ public class CameraController : MonoBehaviour
 	public GameObject m_normal;
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
-	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection;
+	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonQuit;
 	public Toggle toggleRectangleMode, toggleDoubleCamMode;
 	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap, inputCamDoubleAngle;
-	public bool rectangleMode, doubleCamMode;
+	public bool rectangleMode = true, doubleCamMode;
 	public GameObject rectangle;
 	public GameObject pyramid;
 	public float m_collisionDistance = 0.2f;
@@ -58,6 +58,7 @@ public class CameraController : MonoBehaviour
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
 		buttonResetCam.onClick.AddListener(ResetCamera);
+		buttonQuit.onClick.AddListener(Quit);
 		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
 		toggleDoubleCamMode.onValueChanged.AddListener(ChangeDoubleCamMode);
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
@@ -69,6 +70,7 @@ public class CameraController : MonoBehaviour
 		inputCamOverlap.onValueChanged.AddListener(ChangeCamOverlap);
 		inputCamDoubleAngle.onValueChanged.AddListener(ChangeCamDoubleAngle);
 		td = transform.Clone();
+		rectangleMode = true;
 	}
 
 	private void Awake()
@@ -228,6 +230,14 @@ public class CameraController : MonoBehaviour
 					{
 						Destroy(camPose2);
 					}
+					else // check if cam is generated on empty space
+					{
+						hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*1.1f);
+						if (hitColliders2.Length==0)
+						{
+							Destroy(camPose);
+						}
+					}
 				}
 				// Check collision
 				var sphereCenter = camPose.transform.position+camPose.transform.up*heigthCam;
@@ -236,6 +246,14 @@ public class CameraController : MonoBehaviour
 				if (hitColliders.Length>0)
 				{
 					Destroy(camPose);
+				}
+				else // check if cam is generated on empty space
+				{
+					hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*1.1f);
+					if (hitColliders.Length==0)
+					{
+						Destroy(camPose);
+					}
 				}
 			}
 		}
@@ -326,8 +344,18 @@ public class CameraController : MonoBehaviour
 		transform.rotation = td.rotation;
 	}
 
+	void Quit()
+	{
+		Application.Quit();
+	}
+
 	void Update()
 	{
+		if (Input.GetKey("escape"))
+		{
+			Application.Quit();
+		}
+
 		if (rectangleMode)
 		{
 			// update rectangle on body
