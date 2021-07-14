@@ -38,6 +38,7 @@ public class Codes : MonoBehaviour
 	//IEnumerator coroutine;
 
 	Color m_newColor;
+	public Order m_order = new Order();
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
 	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f, doubleAngleCam = 10f;
@@ -47,6 +48,11 @@ public class Codes : MonoBehaviour
 		public List<GameObject> borders;
 		public GameObject normal;
 		public List<Transform> camPoses;
+	}
+
+	private struct Order
+	{
+		public List<Section> sections;
 	}
 
 	private List<Section> m_AllSections = new List<Section>();
@@ -232,7 +238,7 @@ public class Codes : MonoBehaviour
 					}
 					else // check if cam is generated on empty space
 					{
-						hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*1.1f);
+						hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*1.3f);
 						if (hitColliders2.Length==0)
 						{
 							Destroy(camPose);
@@ -249,7 +255,7 @@ public class Codes : MonoBehaviour
 				}
 				else // check if cam is generated on empty space
 				{
-					hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*1.1f);
+					hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*1.3f);
 					if (hitColliders.Length==0)
 					{
 						Destroy(camPose);
