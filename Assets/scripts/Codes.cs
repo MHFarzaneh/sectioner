@@ -38,11 +38,11 @@ public class Codes : MonoBehaviour
 	//IEnumerator coroutine;
 
 	Color m_newColor;
-	public Order m_order = new Order();
+	private Order m_order = new Order();
 	private List<GameObject> m_currentNormals = new List<GameObject>();
 	bool isRectangleOnPlane = false;
 	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f, doubleAngleCam = 10f;
-	private struct Section
+	public struct Section
 	{
 		public GameObject rectangle;
 		public List<GameObject> borders;
@@ -55,7 +55,7 @@ public class Codes : MonoBehaviour
 		public List<Section> sections;
 	}
 
-	private List<Section> m_AllSections = new List<Section>();
+	public List<Section> m_AllSections = new List<Section>();
 
 	// Use this for initialization
 	void Start () {

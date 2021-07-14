@@ -56,13 +56,14 @@ public class World : MonoBehaviour
 
     void PlanOrder()
     {
-	    m_variables.m_order;
+	    var sections = m_variables.m_AllSections;
 	    // create n cities at random locations
-	    for (int i = 0; i < cityCount; i++) {
+	    for (int i = 0; i < sections.Count; i++) {
 
 		    var city = Instantiate(cityPrefab, transform).GetComponent<City>();
 		    city.index = i;
-		    city.SetPosition(Random.Range(0f, 10f), Random.Range(0f, 10f), Random.Range(0f, 10f));
+		    var pos = sections[i].normal.transform.position + sections[i].normal.transform.up*2f;
+		    city.SetPosition(pos.x,pos.y, pos.z);
 
 		    cities.Add(city);
 	    }

@@ -14,7 +14,7 @@ public class City : MonoBehaviour {
     /// Positions a city at a given location.
     /// </summary>
     public void SetPosition(float x, float y, float z) {
-        transform.position = new Vector3(x-5.75f, y-1f, z);
+        transform.position = new Vector3(x, y, z);
     }
 
     /// <summary>
