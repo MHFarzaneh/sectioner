@@ -9,6 +9,8 @@ public class World : MonoBehaviour
 
 	public GameObject m_codes;
 	public Button buttonPlanOrder;
+	public Toggle togglePlanByUserOrder;
+	public bool planeByUserOrderMode = true;
 	Codes m_variables;
 
     public List<City> cities = new List<City>();
@@ -57,6 +59,7 @@ public class World : MonoBehaviour
     void PlanOrder()
     {
 	    var sections = m_variables.m_AllSections;
+	    cityCount = sections.Count;
 	    // create n cities at random locations
 	    for (int i = 0; i < sections.Count; i++) {
 
@@ -92,6 +95,12 @@ public class World : MonoBehaviour
 	    isPlanPressed = false;
 	    numberOfIterations = 100;
 	    buttonPlanOrder.onClick.AddListener(PlanOrder);
+	    togglePlanByUserOrder.onValueChanged.AddListener(ChangePlanByUserOrderMode);
+    }
+
+    void ChangePlanByUserOrderMode(bool mode)
+    {
+	    planeByUserOrderMode = mode;
     }
 
     /// <summary>
@@ -102,6 +111,20 @@ public class World : MonoBehaviour
 	    if (!isPlanPressed)
 	    {
 			return;
+	    }
+
+	    if (planeByUserOrderMode)
+	    {
+		    Color color = Color.gray;
+		    var sections = m_variables.m_AllSections;
+		    for (int i = 0; i < sections.Count-1; i++)
+		    {
+			    var start = sections[i].normal.transform.position + sections[i].normal.transform.up * 2f;
+			    var end = sections[i+1].normal.transform.position + sections[i+1].normal.transform.up * 2f;
+			    DrawLine(start, end, color);
+		    }
+		    isPlanPressed = !isPlanPressed;
+		    return;
 	    }
 
 	    #region Calculate fitness
@@ -256,5 +279,19 @@ public class World : MonoBehaviour
     public void TogglePercentage() {
         toggled = !toggled;
         ShowChange();
+    }
+
+    void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 5f)
+    {
+	    GameObject myLine = new GameObject();
+	    myLine.transform.position = start;
+	    myLine.AddComponent<LineRenderer>();
+	    LineRenderer lr = myLine.GetComponent<LineRenderer>();
+	    //lr.material = new Material(Shader.Find("mark"));
+	    lr.SetColors(color, color);
+	    lr.SetWidth(0.1f, 0.1f);
+	    lr.SetPosition(0, start);
+	    lr.SetPosition(1, end);
+	    GameObject.Destroy(myLine, duration);
     }
 }

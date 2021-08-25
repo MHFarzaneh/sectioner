@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System.IO;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 //using Random = System.Random;
@@ -23,15 +24,19 @@ public class Codes : MonoBehaviour
 	Vector3 anchorPoint;
 	Quaternion anchorRot;
 
+	int idCounter;
+
 	TransformData td;
+	bool m_isDownward = true, m_goRight = false;
+	public GameObject m_canvas;
 	public GameObject m_mark;
 	public GameObject m_normal;
 	public GameObject m_sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
-	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonQuit;
-	public Toggle toggleRectangleMode, toggleDoubleCamMode;
+	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonAutoSec, buttonRemoveAll, buttonQuit;
+	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode;
 	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap, inputCamDoubleAngle;
-	public bool rectangleMode = true, doubleCamMode;
+	public bool rectangleMode = true, deleteSectionByselectionMode = false, doubleCamMode;
 	public GameObject rectangle;
 	public GameObject pyramid;
 	public float m_collisionDistance = 0.2f;
@@ -48,6 +53,7 @@ public class Codes : MonoBehaviour
 		public List<GameObject> borders;
 		public GameObject normal;
 		public List<Transform> camPoses;
+		public int id;
 	}
 
 	private struct Order
@@ -58,14 +64,19 @@ public class Codes : MonoBehaviour
 	public List<Section> m_AllSections = new List<Section>();
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+	{
+		idCounter = 0;
 		m_newColor = new Color(Random.value, Random.value, Random.value, 0.1f);
 		buttonWrite.onClick.AddListener(WriteToFile);
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
 		buttonResetCam.onClick.AddListener(ResetCamera);
 		buttonQuit.onClick.AddListener(Quit);
+		buttonRemoveAll.onClick.AddListener(RemoveAll);
+		buttonAutoSec.onClick.AddListener(AutoSec);
 		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
+		toggleDeleteBySelectionMode.onValueChanged.AddListener(ChangeDeletBySelectionMode);
 		toggleDoubleCamMode.onValueChanged.AddListener(ChangeDoubleCamMode);
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
 		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
@@ -144,6 +155,26 @@ public class Codes : MonoBehaviour
 		rectangleMode = mode;
 	}
 
+	void ChangeDeletBySelectionMode(bool mode)
+	{
+		deleteSectionByselectionMode = mode;
+		// add collider to all sections
+		if (mode)
+		{
+			foreach (var s in m_AllSections)
+			{
+				s.rectangle.AddComponent<BoxCollider>();
+			}
+		}
+		else
+		{
+			foreach (var s in m_AllSections)
+			{
+				Destroy(s.rectangle.GetComponent<BoxCollider>());
+			}
+		}
+	}
+
 	void ChangeDoubleCamMode(bool mode)
 	{
 		doubleCamMode = mode;
@@ -179,10 +210,9 @@ public class Codes : MonoBehaviour
         }
 	}
 
-	private void RectangleUpdate()
+	private void RectangleUpdate(Ray ray)
 	{
 		RaycastHit hit;
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		if ( Physics.Raycast (ray,out hit,100.0f))
 		{
 			rectangle.transform.position = hit.point;
@@ -316,6 +346,7 @@ public class Codes : MonoBehaviour
 		var normal = Instantiate(m_sectionNormal,dummyRectangle.transform);
 		var rectangleInstance = Instantiate(rectangle);
 
+
 		normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
 		rectangleInstance.GetComponentInChildren<Renderer>().material.color = m_newColor;
 
@@ -324,6 +355,10 @@ public class Codes : MonoBehaviour
 		s.borders = new List<GameObject>(m_currentNormals);
 		s.rectangle = rectangleInstance;
 		GenerateCamPoses(s);
+		//s.rectangle.AddComponent<BoxCollider>();
+		idCounter++;
+		s.id = idCounter;
+		Debug.Log(idCounter);
 
 		m_AllSections.Add(s);
 
@@ -343,6 +378,20 @@ public class Codes : MonoBehaviour
 		m_AllSections.RemoveAt(m_AllSections.Count - 1);
 	}
 
+	void RemoveSection(Section section)
+	{
+		var sectionIndex = m_AllSections.FindIndex(s => s.id == section.id);
+		Debug.Log(sectionIndex);
+		foreach (var b in m_AllSections[sectionIndex].borders)
+		{
+			Destroy(b);
+		}
+
+		Destroy(m_AllSections[sectionIndex].normal);
+		Destroy(m_AllSections[sectionIndex].rectangle);
+		m_AllSections.RemoveAt(sectionIndex);
+	}
+
 	void ResetCamera()
 	{
 		print("Reset camera to home");
@@ -355,17 +404,120 @@ public class Codes : MonoBehaviour
 		Application.Quit();
 	}
 
+	void RemoveAll()
+	{
+		while (m_AllSections.Count != 0)
+		{
+			RemovePreviousSection();
+		}
+	}
+
+	void AutoSec()
+	{
+		if (m_AllSections.Count == 0)
+		{
+			return;
+		}
+		var lastSection = m_AllSections.Last();
+		var direction = lastSection.normal.transform.forward;
+		if (m_isDownward) direction *= -1f;
+		var oldHit = lastSection.normal.transform.position;
+		var oldNormal = lastSection.normal.transform.up;
+		var newHitPre = oldHit + direction * heigthRectangle + oldNormal*5f;
+		if (m_goRight)
+		{
+			var rightDir = lastSection.normal.transform.right;
+			newHitPre = oldHit + rightDir * heigthRectangle + oldNormal*5f;
+		}
+
+		Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
+
+		RectangleUpdate(new Ray(newHitPre, -oldNormal));
+		if (isRectangleOnPlane)
+		{
+			CloseRectangleSection();
+		}
+		else
+		{
+			Debug.DrawLine(newHitPre, newHitPre+10f*-oldNormal,Color.red, 100f);
+			Debug.Log("not on plane");
+		}
+
+		lastSection = m_AllSections.Last();
+		var projToYZ = new Vector3(0, lastSection.normal.transform.up.y, lastSection.normal.transform.up.z);
+		float angleToY = Vector3.Angle(projToYZ, Vector3.up);
+	//Debug.Log(angleToY);
+
+	float angleThreshold = 10f * (heigthRectangle + lengthRectangle + widthRectangle) / 3f;
+	Debug.Log(angleThreshold);
+
+	// End of column, move one to right and go upward
+		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && m_AllSections.Count < 300 && isRectangleOnPlane && !m_goRight)
+		{
+			Debug.Log("switch");
+			m_isDownward = !m_isDownward;
+			m_goRight = true;
+			AutoSec();
+
+		}
+		else if (m_AllSections.Count < 300 && isRectangleOnPlane)
+		{
+			if (m_goRight) m_goRight = false;
+			AutoSec();
+		}
+		//Debug.Log("out");
+
+
+	}
+
+	void DeleteSectionBySelection()
+	{
+		if (Input.GetMouseButtonUp(0))
+		{
+			//Debug.Log("here");
+			RaycastHit hit;
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			if ( Physics.Raycast (ray,out hit,100.0f))
+			{
+				var gameObject = hit.transform.gameObject;
+				//Debug.Log(gameObject.name);
+				//Debug.Log(rectangle.name);
+				if (gameObject.name != rectangle.name+"(Clone)")
+				{
+					return;
+				}
+				var id = gameObject.GetInstanceID();
+				//Debug.Log(id);
+				var sectionToDelete = m_AllSections.Find(section => section.rectangle.GetInstanceID() == id);
+				//Debug.Log(sectionToDelete);
+				//Debug.Log(sectionToDelete.id);
+				RemoveSection(sectionToDelete);
+			}
+		}
+	}
+
 	void Update()
 	{
+		//TODO
+		if (EventSystem.current.IsPointerOverGameObject(0))    // is the touch on the GUI
+		{
+			// GUI Action
+			return;
+		}
+
 		if (Input.GetKey("escape"))
 		{
 			Application.Quit();
 		}
 
-		if (rectangleMode)
+		if (deleteSectionByselectionMode)
+		{
+			DeleteSectionBySelection();
+		}
+		else if (rectangleMode)
 		{
 			// update rectangle on body
-			RectangleUpdate();
+			RectangleUpdate(Camera.main.ScreenPointToRay(Input.mousePosition));
 
 			// create section
 			if (Input.GetMouseButtonUp(0))

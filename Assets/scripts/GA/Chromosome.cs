@@ -48,7 +48,7 @@ public class Chromosome {
     /// <summary>
     /// Combines the DNAs of two parents and returns a child using
     /// the method specified by <see cref="World.crossoverType"/>.
-    /// </summary>    
+    /// </summary>
 
     public Chromosome Crossover(Chromosome partner) {
 
@@ -64,7 +64,7 @@ public class Chromosome {
     /// <summary>
     /// Combines the DNAs of two parents and returns a child
     /// (using Edge Recombination Crossover / ERX).
-    /// </summary>    
+    /// </summary>
     private Chromosome CrossoverERX(Chromosome partner) {
 
         var size = this.dna.Count;
@@ -73,16 +73,15 @@ public class Chromosome {
 
         var edges = new List<City>[world.cityCount];
         for (int i = 0; i < this.dna.Count; i++) {
-            edges[i] = FindEdges(i, partner);
+	        edges[i] = FindEdges(i, partner);
         }
 
         var currentCity = this.dna[0];
         while (child.dna.Count < this.dna.Count) {
 
             child.dna.Add(currentCity);
-
             for (int i = 0; i < edges.GetLength(0); i++) {
-                edges[i].RemoveAll(x => x.index == currentCity.index);
+	            edges[i].RemoveAll(x => x.index == currentCity.index);
             }
 
             if (edges[currentCity.index].Count == 0) {
