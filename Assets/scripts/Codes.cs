@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System.IO;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -197,12 +198,30 @@ public class Codes : MonoBehaviour
 
 		copy.GetComponentInChildren<Text>().text = section.id.ToString();
 		int copyOfIndex = section.id;
+		var section1 = section;
 		copy.GetComponent<Button>().onClick.AddListener(
 			() =>
 			{
-				Debug.Log("index number"+copyOfIndex);
-			}
-		);
+				HighlightSection(section1);
+			});
+	}
+
+	UnityAction HighlightSection(Section section)
+	{
+		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
+		StartCoroutine(ChangeColorCoroutine(section));
+		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.blue;
+
+		Debug.Log("number "+section.id.ToString());
+		return null;
+	}
+
+	IEnumerator ChangeColorCoroutine(Section section)
+	{
+		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
+		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
+		yield return new WaitForSeconds(1);
+		section.rectangle.GetComponent<MeshRenderer>().material.color = initColor;
 	}
 
 	void WriteToFile()
