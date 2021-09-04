@@ -190,20 +190,19 @@ public class Codes : MonoBehaviour
 		doubleCamMode = mode;
 	}
 
-	void AddToList()
+	void AddToList(ref Section section)
 	{
 		var copy = Instantiate(itemTemplate);
 		copy.transform.parent = content.transform;
 
-		copy.GetComponentInChildren<Text>().text = (m_Index + 1).ToString();
-		int copyOfIndex = m_Index;
+		copy.GetComponentInChildren<Text>().text = section.id.ToString();
+		int copyOfIndex = section.id;
 		copy.GetComponent<Button>().onClick.AddListener(
 			() =>
 			{
 				Debug.Log("index number"+copyOfIndex);
 			}
 		);
-		m_Index++;
 	}
 
 	void WriteToFile()
@@ -384,13 +383,13 @@ public class Codes : MonoBehaviour
 		//s.rectangle.AddComponent<BoxCollider>();
 		m_IDCounter++;
 		s.id = m_IDCounter;
-		Debug.Log(m_IDCounter);
+		//Debug.Log(m_IDCounter);
 
 		allSections.Add(s);
 
 		m_CurrentNormals.Clear();
 
-		AddToList();
+		AddToList(ref s);
 	}
 
 	void RemovePreviousSection()
