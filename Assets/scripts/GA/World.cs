@@ -58,7 +58,7 @@ public class World : MonoBehaviour
 
     void PlanOrder()
     {
-	    var sections = m_variables.m_AllSections;
+	    var sections = m_variables.allSections;
 	    cityCount = sections.Count;
 	    // create n cities at random locations
 	    for (int i = 0; i < sections.Count; i++) {
@@ -116,7 +116,7 @@ public class World : MonoBehaviour
 	    if (planeByUserOrderMode)
 	    {
 		    Color color = Color.gray;
-		    var sections = m_variables.m_AllSections;
+		    var sections = m_variables.allSections;
 		    for (int i = 0; i < sections.Count-1; i++)
 		    {
 			    var start = sections[i].normal.transform.position + sections[i].normal.transform.up * 2f;

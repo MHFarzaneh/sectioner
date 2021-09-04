@@ -11,6 +11,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using System.IO;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 //using Random = System.Random;
@@ -20,18 +21,26 @@ public class Codes : MonoBehaviour
 	[SerializeField] float speed = 0.5f;
 	[SerializeField] float sensitivity = 1.0f;
 
-	Camera cam;
-	Vector3 anchorPoint;
-	Quaternion anchorRot;
+	int m_Index = 0;
+	public GameObject itemTemplate;
+	public GameObject content;
 
-	int idCounter;
+	Camera m_Cam;
+	Vector3 m_AnchorPoint;
+	Quaternion m_AnchorRot;
 
-	TransformData td;
-	bool m_isDownward = true, m_goRight = false;
-	public GameObject m_canvas;
-	public GameObject m_mark;
-	public GameObject m_normal;
-	public GameObject m_sectionNormal;
+	int m_IDCounter;
+
+	TransformData m_Td;
+	bool m_IsDownward = true, m_GORight = false;
+	[FormerlySerializedAs("m_canvas")]
+	public GameObject canvas;
+	[FormerlySerializedAs("m_mark")]
+	public GameObject mark;
+	[FormerlySerializedAs("m_normal")]
+	public GameObject normal;
+	[FormerlySerializedAs("m_sectionNormal")]
+	public GameObject sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonAutoSec, buttonRemoveAll, buttonQuit;
 	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode;
@@ -39,14 +48,15 @@ public class Codes : MonoBehaviour
 	public bool rectangleMode = true, deleteSectionByselectionMode = false, doubleCamMode;
 	public GameObject rectangle;
 	public GameObject pyramid;
-	public float m_collisionDistance = 0.2f;
+	[FormerlySerializedAs("m_collisionDistance")]
+	public float collisionDistance = 0.2f;
 	//IEnumerator coroutine;
 
-	Color m_newColor;
-	private Order m_order = new Order();
-	private List<GameObject> m_currentNormals = new List<GameObject>();
-	bool isRectangleOnPlane = false;
-	float heigthRectangle=1f, widthRectangle=1f, lengthRectangle=1f, heigthCam=0.5f, widthCam=0.3f, lengthCam=0.3f, overlapCam = 1f, doubleAngleCam = 10f;
+	Color m_NewColor;
+	private Order m_Order = new Order();
+	private List<GameObject> m_CurrentNormals = new List<GameObject>();
+	bool m_IsRectangleOnPlane = false;
+	float m_HeigthRectangle=1f, m_WidthRectangle=1f, m_LengthRectangle=1f, m_HeigthCam=0.5f, m_WidthCam=0.3f, m_LengthCam=0.3f, m_OverlapCam = 1f, m_DoubleAngleCam = 10f;
 	public struct Section
 	{
 		public GameObject rectangle;
@@ -61,13 +71,13 @@ public class Codes : MonoBehaviour
 		public List<Section> sections;
 	}
 
-	public List<Section> m_AllSections = new List<Section>();
+	public List<Section> allSections = new List<Section>();
 
 	// Use this for initialization
 	void Start ()
 	{
-		idCounter = 0;
-		m_newColor = new Color(Random.value, Random.value, Random.value, 0.1f);
+		m_IDCounter = 0;
+		m_NewColor = new Color(Random.value, Random.value, Random.value, 0.1f);
 		buttonWrite.onClick.AddListener(WriteToFile);
 		buttonFinishSection.onClick.AddListener(CloseSection);
 		buttonUndo.onClick.AddListener(RemovePreviousSection);
@@ -86,57 +96,57 @@ public class Codes : MonoBehaviour
 		inputCamLength.onValueChanged.AddListener(ChangeCamLength);
 		inputCamOverlap.onValueChanged.AddListener(ChangeCamOverlap);
 		inputCamDoubleAngle.onValueChanged.AddListener(ChangeCamDoubleAngle);
-		td = transform.Clone();
+		m_Td = transform.Clone();
 		rectangleMode = true;
 	}
 
 	private void Awake()
 	{
-		cam = GetComponent<Camera>();
+		m_Cam = GetComponent<Camera>();
 	}
 
 	void ChangeCamLength(string l)
 	{
 		//pyramid.transform.localScale =new Vector3(pyramid.transform.localScale.x,pyramid.transform.localScale.y,Convert.ToSingle(l));
-		lengthCam = Convert.ToSingle(l);
+		m_LengthCam = Convert.ToSingle(l);
 	}
 	void ChangeCamHeight(string h)
 	{
 		//pyramid.transform.localScale = new Vector3(pyramid.transform.localScale.x,Convert.ToSingle(h),pyramid.transform.localScale.z);
-		heigthCam = Convert.ToSingle(h);
+		m_HeigthCam = Convert.ToSingle(h);
 	}
 
 	void ChangeCamWidth(string w)
 	{
 		//pyramid.transform.localScale = new Vector3(Convert.ToSingle(w),pyramid.transform.localScale.y,pyramid.transform.localScale.z);
-		widthCam = Convert.ToSingle(w);
+		m_WidthCam = Convert.ToSingle(w);
 	}
 
 	void ChangeCamOverlap(string o)
 	{
-		overlapCam = Convert.ToSingle(o);
+		m_OverlapCam = Convert.ToSingle(o);
 	}
 
 	void ChangeCamDoubleAngle(string a)
 	{
-		doubleAngleCam = Convert.ToSingle(a);
+		m_DoubleAngleCam = Convert.ToSingle(a);
 	}
 
 	void ChangeRectangleLength(string l)
 	{
 		rectangle.transform.localScale =new Vector3(rectangle.transform.localScale.x,rectangle.transform.localScale.y,Convert.ToSingle(l));
-		lengthRectangle = Convert.ToSingle(l);
+		m_LengthRectangle = Convert.ToSingle(l);
 	}
 	void ChangeRectangleHeight(string h)
 	{
 		rectangle.transform.localScale = new Vector3(rectangle.transform.localScale.x,Convert.ToSingle(h),rectangle.transform.localScale.z);
-		heigthRectangle = Convert.ToSingle(h);
+		m_HeigthRectangle = Convert.ToSingle(h);
 	}
 
 	void ChangeRectangleWidth(string w)
 	{
 		rectangle.transform.localScale = new Vector3(Convert.ToSingle(w),rectangle.transform.localScale.y,rectangle.transform.localScale.z);
-		widthRectangle = Convert.ToSingle(w);
+		m_WidthRectangle = Convert.ToSingle(w);
 	}
 
 	void RotatePlus()
@@ -161,14 +171,14 @@ public class Codes : MonoBehaviour
 		// add collider to all sections
 		if (mode)
 		{
-			foreach (var s in m_AllSections)
+			foreach (var s in allSections)
 			{
 				s.rectangle.AddComponent<BoxCollider>();
 			}
 		}
 		else
 		{
-			foreach (var s in m_AllSections)
+			foreach (var s in allSections)
 			{
 				Destroy(s.rectangle.GetComponent<BoxCollider>());
 			}
@@ -180,12 +190,28 @@ public class Codes : MonoBehaviour
 		doubleCamMode = mode;
 	}
 
+	void AddToList()
+	{
+		var copy = Instantiate(itemTemplate);
+		copy.transform.parent = content.transform;
+
+		copy.GetComponentInChildren<Text>().text = (m_Index + 1).ToString();
+		int copyOfIndex = m_Index;
+		copy.GetComponent<Button>().onClick.AddListener(
+			() =>
+			{
+				Debug.Log("index number"+copyOfIndex);
+			}
+		);
+		m_Index++;
+	}
+
 	void WriteToFile()
 	{
 		// Write the string array to a new file named "WriteLines.txt".
 		using (StreamWriter outputFile = new StreamWriter( "WriteLines.txt"))
 		{
-			foreach (var s in m_AllSections)
+			foreach (var s in allSections)
 			{
 				var p= s.normal.transform.position;
 				string line = p.x +" "+ p.y+" "+p.z;
@@ -199,12 +225,12 @@ public class Codes : MonoBehaviour
 		RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if ( Physics.Raycast (ray,out hit,100.0f)) {
-	        if (!m_currentNormals.Any() || Vector3.Distance(m_currentNormals.Last().transform.position,hit.point)>distanceBetweenBorderNormals)
+	        if (!m_CurrentNormals.Any() || Vector3.Distance(m_CurrentNormals.Last().transform.position,hit.point)>distanceBetweenBorderNormals)
 	        {
 		        //Instantiate(m_mark, tran, Quaternion.identity);
-                var normal =Instantiate(m_normal, hit.point, Quaternion.identity);
-                normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
-                m_currentNormals.Add(normal);
+                var normal =Instantiate(this.normal, hit.point, Quaternion.identity);
+                normal.GetComponentInChildren<Renderer>().material.color = m_NewColor;
+                m_CurrentNormals.Add(normal);
                 normal.transform.up = hit.normal;
 	        }
         }
@@ -220,12 +246,12 @@ public class Codes : MonoBehaviour
 			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus();
 			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus();
 
-			isRectangleOnPlane = true;
+			m_IsRectangleOnPlane = true;
 		}
 		else
 		{
 			rectangle.transform.position = Vector3.zero;
-			isRectangleOnPlane = false;
+			m_IsRectangleOnPlane = false;
 		}
 	}
 
@@ -233,42 +259,42 @@ public class Codes : MonoBehaviour
 	{
 		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
 		var recScale = s.rectangle.transform.lossyScale;
-		for (float l = -lengthRectangle / (recScale.z*2f); l < lengthRectangle / (recScale.z*2f); l = l + (lengthCam/recScale.z)/overlapCam)
+		for (float l = -m_LengthRectangle / (recScale.z*2f); l < m_LengthRectangle / (recScale.z*2f); l = l + (m_LengthCam/recScale.z)/m_OverlapCam)
 		{
-			for (float w = -widthRectangle / (recScale.x*2f); w < widthRectangle / (recScale.x*2f); w = w + (widthCam/recScale.x)/overlapCam)
+			for (float w = -m_WidthRectangle / (recScale.x*2f); w < m_WidthRectangle / (recScale.x*2f); w = w + (m_WidthCam/recScale.x)/m_OverlapCam)
 			{
 				var camPose = Instantiate(pyramid, s.rectangle.transform);
 				camPose.transform.localPosition = new Vector3(w, 0,l);
 				var camScale = camPose.transform.localScale;
-				camPose.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
-					(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
-				camPose.GetComponentInChildren<Renderer>().material.color = m_newColor;
+				camPose.transform.localScale = new Vector3((camScale.x*m_WidthCam)/(recScale.x*0.3f),
+					(camScale.y*m_HeigthCam)/(recScale.y*0.5f), (camScale.z*m_LengthCam)/(recScale.z*0.3f));
+				camPose.GetComponentInChildren<Renderer>().material.color = m_NewColor;
 
 				// Double cam mode
 				if (doubleCamMode)
 				{
-					camPose.transform.rotation *= Quaternion.AngleAxis(doubleAngleCam, camPose.transform.up);
+					camPose.transform.rotation *= Quaternion.AngleAxis(m_DoubleAngleCam, camPose.transform.up);
 
 					var camPose2 = Instantiate(pyramid, s.rectangle.transform);
 					camPose2.transform.localPosition = new Vector3(w, 0,l);
 					var camScale2 = camPose2.transform.localScale;
-					camPose2.transform.localScale = new Vector3((camScale.x*widthCam)/(recScale.x*0.3f),
-						(camScale.y*heigthCam)/(recScale.y*0.5f), (camScale.z*lengthCam)/(recScale.z*0.3f));
-					camPose2.GetComponentInChildren<Renderer>().material.color = m_newColor;
+					camPose2.transform.localScale = new Vector3((camScale.x*m_WidthCam)/(recScale.x*0.3f),
+						(camScale.y*m_HeigthCam)/(recScale.y*0.5f), (camScale.z*m_LengthCam)/(recScale.z*0.3f));
+					camPose2.GetComponentInChildren<Renderer>().material.color = m_NewColor;
 
-					camPose2.transform.rotation *= Quaternion.AngleAxis(-doubleAngleCam, camPose2.transform.up);
+					camPose2.transform.rotation *= Quaternion.AngleAxis(-m_DoubleAngleCam, camPose2.transform.up);
 
 					// Check collision
-					var sphereCenter2 = camPose2.transform.position+camPose2.transform.up*heigthCam;
+					var sphereCenter2 = camPose2.transform.position+camPose2.transform.up*m_HeigthCam;
 					//Debug.DrawLine(sphereCenter,camPose.transform.position, Color.green, 500f);
-					Collider[] hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*0.8f);
+					Collider[] hitColliders2 = Physics.OverlapSphere(sphereCenter2, m_HeigthCam*0.8f);
 					if (hitColliders2.Length>0)
 					{
 						Destroy(camPose2);
 					}
 					else // check if cam is generated on empty space
 					{
-						hitColliders2 = Physics.OverlapSphere(sphereCenter2, heigthCam*1.3f);
+						hitColliders2 = Physics.OverlapSphere(sphereCenter2, m_HeigthCam*1.3f);
 						if (hitColliders2.Length==0)
 						{
 							Destroy(camPose);
@@ -276,16 +302,16 @@ public class Codes : MonoBehaviour
 					}
 				}
 				// Check collision
-				var sphereCenter = camPose.transform.position+camPose.transform.up*heigthCam;
+				var sphereCenter = camPose.transform.position+camPose.transform.up*m_HeigthCam;
 				//Debug.DrawLine(sphereCenter,camPose.transform.position, Color.green, 500f);
-				Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*0.8f);
+				Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, m_HeigthCam*0.8f);
 				if (hitColliders.Length>0)
 				{
 					Destroy(camPose);
 				}
 				else // check if cam is generated on empty space
 				{
-					hitColliders = Physics.OverlapSphere(sphereCenter, heigthCam*1.3f);
+					hitColliders = Physics.OverlapSphere(sphereCenter, m_HeigthCam*1.3f);
 					if (hitColliders.Length==0)
 					{
 						Destroy(camPose);
@@ -300,7 +326,7 @@ public class Codes : MonoBehaviour
 		var sectionPosition = new Vector3(0,0,0);
         var sectionUp = new Vector3(0,0,0);
         float i = 0;
-        foreach (var n in m_currentNormals)
+        foreach (var n in m_CurrentNormals)
         {
         	sectionPosition += n.transform.position;
         	sectionUp += n.transform.up;
@@ -315,59 +341,61 @@ public class Codes : MonoBehaviour
         tf.transform.position = sectionPosition;
         tf.transform.up = sectionUp;
 
-        var normal = Instantiate(m_sectionNormal, tf.transform);
-        normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
+        var normal = Instantiate(sectionNormal, tf.transform);
+        normal.GetComponentInChildren<Renderer>().material.color = m_NewColor;
 
         Section s = new Section();
         s.normal = normal;
-        s.borders = new List<GameObject>(m_currentNormals);
+        s.borders = new List<GameObject>(m_CurrentNormals);
         GenerateCamPoses(s);
 
-        m_AllSections.Add(s);
+        allSections.Add(s);
 
-        m_currentNormals.Clear();
+        m_CurrentNormals.Clear();
 
         // pick a random color
-        m_newColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+        m_NewColor = new Color(Random.value, Random.value, Random.value, 1.0f);
 
 	}
 
 	private void CloseRectangleSection()
 	{
 		// pick a random color
-		m_newColor = new Color(Random.value, Random.value, Random.value,0.1f);
+		m_NewColor = new Color(Random.value, Random.value, Random.value,0.1f);
 
-		if (!isRectangleOnPlane) return;
+		if (!m_IsRectangleOnPlane) return;
 		var dummyRectangle = new GameObject();
 
 		dummyRectangle.transform.position = rectangle.transform.position;
 		dummyRectangle.transform.up = rectangle.transform.up;
 
-		var normal = Instantiate(m_sectionNormal,dummyRectangle.transform);
+		var normal = Instantiate(sectionNormal,dummyRectangle.transform);
 		var rectangleInstance = Instantiate(rectangle);
 
 
-		normal.GetComponentInChildren<Renderer>().material.color = m_newColor;
-		rectangleInstance.GetComponentInChildren<Renderer>().material.color = m_newColor;
+		normal.GetComponentInChildren<Renderer>().material.color = m_NewColor;
+		rectangleInstance.GetComponentInChildren<Renderer>().material.color = m_NewColor;
 
 		Section s = new Section();
 		s.normal = normal;
-		s.borders = new List<GameObject>(m_currentNormals);
+		s.borders = new List<GameObject>(m_CurrentNormals);
 		s.rectangle = rectangleInstance;
 		GenerateCamPoses(s);
 		//s.rectangle.AddComponent<BoxCollider>();
-		idCounter++;
-		s.id = idCounter;
-		Debug.Log(idCounter);
+		m_IDCounter++;
+		s.id = m_IDCounter;
+		Debug.Log(m_IDCounter);
 
-		m_AllSections.Add(s);
+		allSections.Add(s);
 
-		m_currentNormals.Clear();
+		m_CurrentNormals.Clear();
+
+		AddToList();
 	}
 
 	void RemovePreviousSection()
 	{
-		var section = m_AllSections.ElementAt(m_AllSections.Count-1);
+		var section = allSections.ElementAt(allSections.Count-1);
 		foreach (var b in section.borders)
 		{
 			Destroy(b);
@@ -375,28 +403,28 @@ public class Codes : MonoBehaviour
 
 		Destroy(section.normal);
 		Destroy(section.rectangle);
-		m_AllSections.RemoveAt(m_AllSections.Count - 1);
+		allSections.RemoveAt(allSections.Count - 1);
 	}
 
 	void RemoveSection(Section section)
 	{
-		var sectionIndex = m_AllSections.FindIndex(s => s.id == section.id);
+		var sectionIndex = allSections.FindIndex(s => s.id == section.id);
 		Debug.Log(sectionIndex);
-		foreach (var b in m_AllSections[sectionIndex].borders)
+		foreach (var b in allSections[sectionIndex].borders)
 		{
 			Destroy(b);
 		}
 
-		Destroy(m_AllSections[sectionIndex].normal);
-		Destroy(m_AllSections[sectionIndex].rectangle);
-		m_AllSections.RemoveAt(sectionIndex);
+		Destroy(allSections[sectionIndex].normal);
+		Destroy(allSections[sectionIndex].rectangle);
+		allSections.RemoveAt(sectionIndex);
 	}
 
 	void ResetCamera()
 	{
 		print("Reset camera to home");
-		transform.position = td.position;
-		transform.rotation = td.rotation;
+		transform.position = m_Td.position;
+		transform.rotation = m_Td.rotation;
 	}
 
 	void Quit()
@@ -406,7 +434,7 @@ public class Codes : MonoBehaviour
 
 	void RemoveAll()
 	{
-		while (m_AllSections.Count != 0)
+		while (allSections.Count != 0)
 		{
 			RemovePreviousSection();
 		}
@@ -414,26 +442,26 @@ public class Codes : MonoBehaviour
 
 	void AutoSec()
 	{
-		if (m_AllSections.Count == 0)
+		if (allSections.Count == 0)
 		{
 			return;
 		}
-		var lastSection = m_AllSections.Last();
+		var lastSection = allSections.Last();
 		var direction = lastSection.normal.transform.forward;
-		if (m_isDownward) direction *= -1f;
+		if (m_IsDownward) direction *= -1f;
 		var oldHit = lastSection.normal.transform.position;
 		var oldNormal = lastSection.normal.transform.up;
-		var newHitPre = oldHit + direction * heigthRectangle + oldNormal*5f;
-		if (m_goRight)
+		var newHitPre = oldHit + direction * m_HeigthRectangle + oldNormal*5f;
+		if (m_GORight)
 		{
 			var rightDir = lastSection.normal.transform.right;
-			newHitPre = oldHit + rightDir * heigthRectangle + oldNormal*5f;
+			newHitPre = oldHit + rightDir * m_HeigthRectangle + oldNormal*5f;
 		}
 
 		Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
 
 		RectangleUpdate(new Ray(newHitPre, -oldNormal));
-		if (isRectangleOnPlane)
+		if (m_IsRectangleOnPlane)
 		{
 			CloseRectangleSection();
 		}
@@ -443,26 +471,26 @@ public class Codes : MonoBehaviour
 			Debug.Log("not on plane");
 		}
 
-		lastSection = m_AllSections.Last();
+		lastSection = allSections.Last();
 		var projToYZ = new Vector3(0, lastSection.normal.transform.up.y, lastSection.normal.transform.up.z);
 		float angleToY = Vector3.Angle(projToYZ, Vector3.up);
 	//Debug.Log(angleToY);
 
-	float angleThreshold = 10f * (heigthRectangle + lengthRectangle + widthRectangle) / 3f;
+	float angleThreshold = 10f * (m_HeigthRectangle + m_LengthRectangle + m_WidthRectangle) / 3f;
 	Debug.Log(angleThreshold);
 
 	// End of column, move one to right and go upward
-		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && m_AllSections.Count < 300 && isRectangleOnPlane && !m_goRight)
+		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && allSections.Count < 300 && m_IsRectangleOnPlane && !m_GORight)
 		{
 			Debug.Log("switch");
-			m_isDownward = !m_isDownward;
-			m_goRight = true;
+			m_IsDownward = !m_IsDownward;
+			m_GORight = true;
 			AutoSec();
 
 		}
-		else if (m_AllSections.Count < 300 && isRectangleOnPlane)
+		else if (allSections.Count < 300 && m_IsRectangleOnPlane)
 		{
-			if (m_goRight) m_goRight = false;
+			if (m_GORight) m_GORight = false;
 			AutoSec();
 		}
 		//Debug.Log("out");
@@ -488,7 +516,7 @@ public class Codes : MonoBehaviour
 				}
 				var id = gameObject.GetInstanceID();
 				//Debug.Log(id);
-				var sectionToDelete = m_AllSections.Find(section => section.rectangle.GetInstanceID() == id);
+				var sectionToDelete = allSections.Find(section => section.rectangle.GetInstanceID() == id);
 				//Debug.Log(sectionToDelete);
 				//Debug.Log(sectionToDelete.id);
 				RemoveSection(sectionToDelete);
