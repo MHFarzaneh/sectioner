@@ -197,9 +197,9 @@ public class Codes : MonoBehaviour
 		copy.transform.parent = content.transform;
 
 		copy.GetComponentInChildren<Text>().text = section.id.ToString();
-		int copyOfIndex = section.id;
 		var section1 = section;
-		copy.GetComponent<Button>().onClick.AddListener(
+		var buttons = copy.GetComponentsInChildren<Button>();
+		buttons[0].onClick.AddListener(
 			() =>
 			{
 				HighlightSection(section1);
@@ -210,7 +210,7 @@ public class Codes : MonoBehaviour
 	{
 		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
 		StartCoroutine(ChangeColorCoroutine(section));
-		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.blue;
+		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
 
 		Debug.Log("number "+section.id.ToString());
 		return null;
@@ -219,7 +219,7 @@ public class Codes : MonoBehaviour
 	IEnumerator ChangeColorCoroutine(Section section)
 	{
 		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
-		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
+		//section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
 		yield return new WaitForSeconds(1);
 		section.rectangle.GetComponent<MeshRenderer>().material.color = initColor;
 	}
