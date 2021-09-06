@@ -85,7 +85,7 @@ public class Codes : MonoBehaviour
 		buttonResetCam.onClick.AddListener(ResetCamera);
 		buttonQuit.onClick.AddListener(Quit);
 		buttonRemoveAll.onClick.AddListener(RemoveAll);
-		buttonAutoSec.onClick.AddListener(AutoSec);
+		buttonAutoSec.onClick.AddListener(CallAutoSec);
 		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
 		toggleDeleteBySelectionMode.onValueChanged.AddListener(ChangeDeletBySelectionMode);
 		toggleDoubleCamMode.onValueChanged.AddListener(ChangeDoubleCamMode);
@@ -191,19 +191,28 @@ public class Codes : MonoBehaviour
 		doubleCamMode = mode;
 	}
 
-	void AddToList(ref Section section)
+	void RefreshList()
 	{
-		var copy = Instantiate(itemTemplate);
-		copy.transform.parent = content.transform;
+		// clear all
+		foreach (Transform child in content.transform) {
+			Destroy(child.gameObject);
+		}
 
-		copy.GetComponentInChildren<Text>().text = section.id.ToString();
-		var section1 = section;
-		var buttons = copy.GetComponentsInChildren<Button>();
-		buttons[0].onClick.AddListener(
-			() =>
-			{
-				HighlightSection(section1);
-			});
+		// add all
+		foreach (var section in allSections)
+		{
+			var copy = Instantiate(itemTemplate);
+			copy.transform.parent = content.transform;
+
+			copy.GetComponentInChildren<Text>().text = section.id.ToString();
+			var section1 = section;
+			var buttons = copy.GetComponentsInChildren<Button>();
+			buttons[0].onClick.AddListener(
+				() =>
+				{
+					HighlightSection(section1);
+				});
+		}
 	}
 
 	UnityAction HighlightSection(Section section)
@@ -376,7 +385,7 @@ public class Codes : MonoBehaviour
 
 	}
 
-	private void CloseRectangleSection()
+	private void CloseRectangleSection(bool withRefresh=true)
 	{
 		// pick a random color
 		m_NewColor = new Color(Random.value, Random.value, Random.value,0.1f);
@@ -408,7 +417,8 @@ public class Codes : MonoBehaviour
 
 		m_CurrentNormals.Clear();
 
-		AddToList(ref s);
+		if (withRefresh)
+			RefreshList();
 	}
 
 	void RemovePreviousSection()
@@ -436,6 +446,8 @@ public class Codes : MonoBehaviour
 		Destroy(allSections[sectionIndex].normal);
 		Destroy(allSections[sectionIndex].rectangle);
 		allSections.RemoveAt(sectionIndex);
+
+		RefreshList();
 	}
 
 	void ResetCamera()
@@ -456,14 +468,21 @@ public class Codes : MonoBehaviour
 		{
 			RemovePreviousSection();
 		}
+		RefreshList();
 	}
 
-	void AutoSec()
+	void CallAutoSec()
 	{
 		if (allSections.Count == 0)
 		{
 			return;
 		}
+		AutoSec();
+		RefreshList();
+	}
+
+	void AutoSec()
+	{
 		var lastSection = allSections.Last();
 		var direction = lastSection.normal.transform.forward;
 		if (m_IsDownward) direction *= -1f;
@@ -476,28 +495,28 @@ public class Codes : MonoBehaviour
 			newHitPre = oldHit + rightDir * m_HeigthRectangle + oldNormal*5f;
 		}
 
-		Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
+		//Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
 
 		RectangleUpdate(new Ray(newHitPre, -oldNormal));
 		if (m_IsRectangleOnPlane)
 		{
-			CloseRectangleSection();
+			CloseRectangleSection(false);
 		}
 		else
 		{
-			Debug.DrawLine(newHitPre, newHitPre+10f*-oldNormal,Color.red, 100f);
+			//Debug.DrawLine(newHitPre, newHitPre+10f*-oldNormal,Color.red, 100f);
 			Debug.Log("not on plane");
 		}
 
 		lastSection = allSections.Last();
 		var projToYZ = new Vector3(0, lastSection.normal.transform.up.y, lastSection.normal.transform.up.z);
 		float angleToY = Vector3.Angle(projToYZ, Vector3.up);
-	//Debug.Log(angleToY);
+		//Debug.Log(angleToY);
 
-	float angleThreshold = 10f * (m_HeigthRectangle + m_LengthRectangle + m_WidthRectangle) / 3f;
-	Debug.Log(angleThreshold);
+		float angleThreshold = 10f * (m_HeigthRectangle + m_LengthRectangle + m_WidthRectangle) / 3f;
+		Debug.Log(angleThreshold);
 
-	// End of column, move one to right and go upward
+		// End of column, move one to right and go upward
 		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && allSections.Count < 300 && m_IsRectangleOnPlane && !m_GORight)
 		{
 			Debug.Log("switch");
@@ -512,8 +531,6 @@ public class Codes : MonoBehaviour
 			AutoSec();
 		}
 		//Debug.Log("out");
-
-
 	}
 
 	void DeleteSectionBySelection()
