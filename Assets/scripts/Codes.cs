@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
 using Unity.VisualScripting;
@@ -207,12 +208,81 @@ public class Codes : MonoBehaviour
 			copy.GetComponentInChildren<Text>().text = section.id.ToString();
 			var section1 = section;
 			var buttons = copy.GetComponentsInChildren<Button>();
+			// Index button
 			buttons[0].onClick.AddListener(
 				() =>
 				{
 					HighlightSection(section1);
 				});
+
+			// Delete butoon
+			buttons[1].onClick.AddListener(
+				() =>
+				{
+					RemoveSection(section1);
+				});
+
+			// MoveUp butoon
+			buttons[2].onClick.AddListener(
+				() =>
+				{
+					MoveUp(section1);
+				});
+
+			// MoveDown butoon
+			buttons[3].onClick.AddListener(
+				() =>
+				{
+					MoveDown(section1);
+				});
 		}
+	}
+
+	public static void Swap<T>(IList<T> list, int indexA, int indexB)
+	{
+		T tmp = list[indexA];
+		list[indexA] = list[indexB];
+		list[indexB] = tmp;
+	}
+
+	void MoveUp(Section section)
+	{
+		int a = 0;
+		int b = 0;
+		for (int s=0; s<allSections.Count; s++)
+		{
+			if (allSections[s].id == section.id)
+			{
+				a = s;
+				b = s - 1;
+			}
+		}
+
+		if (b < 0)
+			return;
+
+		Swap(allSections, a, b);
+		RefreshList();
+	}
+
+	void MoveDown(Section section)
+	{
+		int a = 0;
+		int b = 0;
+		for (int s=0; s<allSections.Count; s++)
+		{
+			if (allSections[s].id == section.id)
+			{
+				a = s;
+				b = s + 1;
+			}
+		}
+
+		if (b > allSections.Count-1)
+			return;
+
+		Swap(allSections, a, b);
+		RefreshList();
 	}
 
 	UnityAction HighlightSection(Section section)

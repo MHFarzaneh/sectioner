@@ -78,10 +78,10 @@ public class World : MonoBehaviour
 
 	    var text = buttonPlanOrder.GetComponentInChildren<Text>();
 
-	    if (!isPlanPressed)
+	    /*if (!isPlanPressed)
 		    text.text = "Stop planning";
 	    else
-			text.text = "Plan order";
+			text.text = "Plan order";*/
 
 	    isPlanPressed = !isPlanPressed;
     }
