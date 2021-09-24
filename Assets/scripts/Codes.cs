@@ -45,11 +45,10 @@ public class Codes : MonoBehaviour
 	public GameObject sectionNormal;
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonAutoSec, buttonRemoveAll, buttonQuit;
-	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode;
+	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode, toggleRegionMode;
 	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap, inputCamDoubleAngle;
-	public bool rectangleMode = true, deleteSectionByselectionMode = false, doubleCamMode;
-	public GameObject rectangle;
-	public GameObject pyramid;
+	public bool rectangleMode = true, deleteSectionByselectionMode = false, doubleCamMode, regionMode=false;
+	public GameObject rectangle, pyramid, region;
 	[FormerlySerializedAs("m_collisionDistance")]
 	public float collisionDistance = 0.2f;
 	//IEnumerator coroutine;
@@ -58,7 +57,7 @@ public class Codes : MonoBehaviour
 	private Order m_Order = new Order();
 	private List<GameObject> m_CurrentNormals = new List<GameObject>();
 	bool m_IsRectangleOnPlane = false;
-	float m_HeigthRectangle=1f, m_WidthRectangle=1f, m_LengthRectangle=1f, m_HeigthCam=0.5f, m_WidthCam=0.3f, m_LengthCam=0.3f, m_OverlapCam = 1f, m_DoubleAngleCam = 10f;
+	float m_HeigthRectangle=2f, m_WidthRectangle=2f, m_LengthRectangle=2f, m_HeigthCam=0.7f, m_WidthCam=0.7f, m_LengthCam=0.7f, m_OverlapCam = 1f, m_DoubleAngleCam = 10f;
 	public struct Section
 	{
 		public GameObject rectangle;
@@ -89,6 +88,7 @@ public class Codes : MonoBehaviour
 		buttonAutoSec.onClick.AddListener(CallAutoSec);
 		toggleRectangleMode.onValueChanged.AddListener(ChangeRectangleMode);
 		toggleDeleteBySelectionMode.onValueChanged.AddListener(ChangeDeletBySelectionMode);
+		toggleRegionMode.onValueChanged.AddListener(ChangeRegionMode);
 		toggleDoubleCamMode.onValueChanged.AddListener(ChangeDoubleCamMode);
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
 		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
@@ -165,6 +165,11 @@ public class Codes : MonoBehaviour
 	void ChangeRectangleMode(bool mode)
 	{
 		rectangleMode = mode;
+	}
+
+	void ChangeRegionMode(bool mode)
+	{
+		regionMode = mode;
 	}
 
 	void ChangeDeletBySelectionMode(bool mode)
@@ -333,13 +338,13 @@ public class Codes : MonoBehaviour
         }
 	}
 
-	private void RectangleUpdate(Ray ray)
+	private void RayCastUpdate(GameObject obj, Ray ray)
 	{
 		RaycastHit hit;
 		if ( Physics.Raycast (ray,out hit,100.0f))
 		{
-			rectangle.transform.position = hit.point;
-			rectangle.transform.rotation = Quaternion.FromToRotation(rectangle.transform.up, hit.normal) * rectangle.transform.rotation;
+			obj.transform.position = hit.point;
+			obj.transform.rotation = Quaternion.FromToRotation(obj.transform.up, hit.normal) * obj.transform.rotation;
 			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus();
 			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus();
 
@@ -347,7 +352,7 @@ public class Codes : MonoBehaviour
 		}
 		else
 		{
-			rectangle.transform.position = Vector3.zero;
+			obj.transform.position = Vector3.zero;
 			m_IsRectangleOnPlane = false;
 		}
 	}
@@ -455,7 +460,7 @@ public class Codes : MonoBehaviour
 
 	}
 
-	private void CloseRectangleSection(bool withRefresh=true)
+	private void CloseRectangleSection(Transform tf, bool withRefresh=true)
 	{
 		// pick a random color
 		m_NewColor = new Color(Random.value, Random.value, Random.value,0.1f);
@@ -463,11 +468,17 @@ public class Codes : MonoBehaviour
 		if (!m_IsRectangleOnPlane) return;
 		var dummyRectangle = new GameObject();
 
-		dummyRectangle.transform.position = rectangle.transform.position;
-		dummyRectangle.transform.up = rectangle.transform.up;
+		dummyRectangle.transform.position = tf.position;
+		dummyRectangle.transform.up = tf.up;
 
 		var normal = Instantiate(sectionNormal,dummyRectangle.transform);
-		var rectangleInstance = Instantiate(rectangle);
+		GameObject rectangleInstance;
+		if (regionMode)
+			rectangleInstance = Instantiate(rectangle, dummyRectangle.transform);
+		else
+		{
+			rectangleInstance = Instantiate(rectangle);
+		}
 
 
 		normal.GetComponentInChildren<Renderer>().material.color = m_NewColor;
@@ -567,10 +578,10 @@ public class Codes : MonoBehaviour
 
 		//Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
 
-		RectangleUpdate(new Ray(newHitPre, -oldNormal));
+		RayCastUpdate(rectangle, new Ray(newHitPre, -oldNormal));
 		if (m_IsRectangleOnPlane)
 		{
-			CloseRectangleSection(false);
+			CloseRectangleSection(rectangle.transform, false);
 		}
 		else
 		{
@@ -595,12 +606,32 @@ public class Codes : MonoBehaviour
 			AutoSec();
 
 		}
-		else if (allSections.Count < 300 && m_IsRectangleOnPlane)
+		else if (allSections.Count < 900 && m_IsRectangleOnPlane)
 		{
 			if (m_GORight) m_GORight = false;
 			AutoSec();
 		}
 		//Debug.Log("out");
+	}
+
+	void RegionMode()
+	{
+		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
+		var recScale = region.transform.lossyScale;
+		for (float l = -10f*m_LengthRectangle / (recScale.z*2f); l < 10f*m_LengthRectangle / (recScale.z*2f); l = l + (3f*m_LengthCam/recScale.z)/m_OverlapCam)
+		{
+			for (float w = -10f*m_WidthRectangle / (recScale.x*2f); w < 10f*m_WidthRectangle / (recScale.x*2f); w = w + (3f*m_WidthCam/recScale.x)/m_OverlapCam)
+			{
+				var rectPose = Instantiate(rectangle, region.transform);
+				rectPose.transform.localPosition = new Vector3(w, 0,l);
+				var rectScale = rectPose.transform.localScale;
+				rectPose.transform.localScale = new Vector3((rectScale.x*m_WidthCam)/(recScale.x*0.3f),
+					(rectScale.y*m_HeigthCam)/(recScale.y*0.5f), (rectScale.z*m_LengthCam)/(recScale.z*0.3f));
+				rectPose.GetComponentInChildren<Renderer>().material.color = m_NewColor;
+				CloseRectangleSection(rectPose.transform, false);
+				Destroy(rectPose);
+			}
+		}
 	}
 
 	void DeleteSectionBySelection()
@@ -643,19 +674,28 @@ public class Codes : MonoBehaviour
 			Application.Quit();
 		}
 
-		if (deleteSectionByselectionMode)
+		if (regionMode)
+		{
+			RayCastUpdate(region, Camera.main.ScreenPointToRay(Input.mousePosition));
+			// create section
+			if (Input.GetMouseButtonUp(0) && m_IsRectangleOnPlane)
+			{
+				RegionMode();
+			}
+		}
+		else if (deleteSectionByselectionMode)
 		{
 			DeleteSectionBySelection();
 		}
 		else if (rectangleMode)
 		{
 			// update rectangle on body
-			RectangleUpdate(Camera.main.ScreenPointToRay(Input.mousePosition));
+			RayCastUpdate(rectangle, Camera.main.ScreenPointToRay(Input.mousePosition));
 
 			// create section
 			if (Input.GetMouseButtonUp(0))
 			{
-				CloseRectangleSection();
+				CloseRectangleSection(rectangle.transform);
 			}
 		}
 		else
