@@ -47,7 +47,8 @@ public class Codes : MonoBehaviour
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonAutoSec, buttonRemoveAll, buttonQuit;
 	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode, toggleRegionMode;
 	public InputField inputHeight, inputWidth, inputLength, inputCamHeight, inputCamWidth, inputCamLength, inputCamOverlap, inputCamDoubleAngle;
-	public bool rectangleMode = true, deleteSectionByselectionMode = false, doubleCamMode, regionMode=false;
+	public InputField inputRegionHeight, inputRegionWidth, inputRegionLength;
+	public bool rectangleMode = true, deleteSectionBySelectionMode = false, doubleCamMode, regionMode=false;
 	public GameObject rectangle, pyramid, region;
 	[FormerlySerializedAs("m_collisionDistance")]
 	public float collisionDistance = 0.2f;
@@ -57,7 +58,8 @@ public class Codes : MonoBehaviour
 	private Order m_Order = new Order();
 	private List<GameObject> m_CurrentNormals = new List<GameObject>();
 	bool m_IsRectangleOnPlane = false;
-	float m_HeigthRectangle=2f, m_WidthRectangle=2f, m_LengthRectangle=2f, m_HeigthCam=0.7f, m_WidthCam=0.7f, m_LengthCam=0.7f, m_OverlapCam = 1f, m_DoubleAngleCam = 10f;
+	float m_HeightRectangle=2f, m_WidthRectangle=2f, m_LengthRectangle=2f, m_HeigthCam=0.7f, m_WidthCam=0.7f, m_LengthCam=0.7f, m_OverlapCam = 1f, m_DoubleAngleCam = 10f;
+	float m_HeightRegion = 4f, m_WidthRegion = 15f, m_LengthRegion = 15f;
 	public struct Section
 	{
 		public GameObject rectangle;
@@ -93,6 +95,11 @@ public class Codes : MonoBehaviour
 		inputHeight.onValueChanged.AddListener(ChangeRectangleHeight);
 		inputWidth.onValueChanged.AddListener(ChangeRectangleWidth);
 		inputLength.onValueChanged.AddListener(ChangeRectangleLength);
+		// region
+		inputRegionHeight.onValueChanged.AddListener(ChangeRegionHeight);
+		inputRegionWidth.onValueChanged.AddListener(ChangeRegionWidth);
+		inputRegionLength.onValueChanged.AddListener(ChangeRegionLength);
+		//
 		inputCamHeight.onValueChanged.AddListener(ChangeCamHeight);
 		inputCamWidth.onValueChanged.AddListener(ChangeCamWidth);
 		inputCamLength.onValueChanged.AddListener(ChangeCamLength);
@@ -142,13 +149,30 @@ public class Codes : MonoBehaviour
 	void ChangeRectangleHeight(string h)
 	{
 		rectangle.transform.localScale = new Vector3(rectangle.transform.localScale.x,Convert.ToSingle(h),rectangle.transform.localScale.z);
-		m_HeigthRectangle = Convert.ToSingle(h);
+		m_HeightRectangle = Convert.ToSingle(h);
 	}
 
 	void ChangeRectangleWidth(string w)
 	{
 		rectangle.transform.localScale = new Vector3(Convert.ToSingle(w),rectangle.transform.localScale.y,rectangle.transform.localScale.z);
 		m_WidthRectangle = Convert.ToSingle(w);
+	}
+
+	void ChangeRegionLength(string l)
+	{
+		region.transform.localScale =new Vector3(region.transform.localScale.x,region.transform.localScale.y,Convert.ToSingle(l));
+		m_LengthRegion = Convert.ToSingle(l);
+	}
+	void ChangeRegionHeight(string h)
+	{
+		region.transform.localScale = new Vector3(region.transform.localScale.x,Convert.ToSingle(h),region.transform.localScale.z);
+		m_HeightRegion = Convert.ToSingle(h);
+	}
+
+	void ChangeRegionWidth(string w)
+	{
+		region.transform.localScale = new Vector3(Convert.ToSingle(w),region.transform.localScale.y,region.transform.localScale.z);
+		m_WidthRegion = Convert.ToSingle(w);
 	}
 
 	void RotatePlus()
@@ -174,7 +198,7 @@ public class Codes : MonoBehaviour
 
 	void ChangeDeletBySelectionMode(bool mode)
 	{
-		deleteSectionByselectionMode = mode;
+		deleteSectionBySelectionMode = mode;
 		// add collider to all sections
 		if (mode)
 		{
@@ -569,11 +593,11 @@ public class Codes : MonoBehaviour
 		if (m_IsDownward) direction *= -1f;
 		var oldHit = lastSection.normal.transform.position;
 		var oldNormal = lastSection.normal.transform.up;
-		var newHitPre = oldHit + direction * m_HeigthRectangle + oldNormal*5f;
+		var newHitPre = oldHit + direction * m_HeightRectangle + oldNormal*5f;
 		if (m_GORight)
 		{
 			var rightDir = lastSection.normal.transform.right;
-			newHitPre = oldHit + rightDir * m_HeigthRectangle + oldNormal*5f;
+			newHitPre = oldHit + rightDir * m_HeightRectangle + oldNormal*5f;
 		}
 
 		//Debug.DrawLine(newHitPre, newHitPre+(-oldNormal*10f),Color.green, 100f);
@@ -594,7 +618,7 @@ public class Codes : MonoBehaviour
 		float angleToY = Vector3.Angle(projToYZ, Vector3.up);
 		//Debug.Log(angleToY);
 
-		float angleThreshold = 10f * (m_HeigthRectangle + m_LengthRectangle + m_WidthRectangle) / 3f;
+		float angleThreshold = 10f * (m_HeightRectangle + m_LengthRectangle + m_WidthRectangle) / 3f;
 		Debug.Log(angleThreshold);
 
 		// End of column, move one to right and go upward
@@ -617,16 +641,19 @@ public class Codes : MonoBehaviour
 	void RegionMode()
 	{
 		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
-		var recScale = region.transform.lossyScale;
-		for (float l = -10f*m_LengthRectangle / (recScale.z*2f); l < 10f*m_LengthRectangle / (recScale.z*2f); l = l + (3f*m_LengthCam/recScale.z)/m_OverlapCam)
+		var regScale = region.transform.lossyScale;
+		for (float l = -m_LengthRegion /2f ; l < m_LengthRegion/2f ; l = l + m_LengthRectangle)
 		{
-			for (float w = -10f*m_WidthRectangle / (recScale.x*2f); w < 10f*m_WidthRectangle / (recScale.x*2f); w = w + (3f*m_WidthCam/recScale.x)/m_OverlapCam)
+			for (float w = -m_WidthRegion/2f ; w < m_WidthRegion/2f ; w = w + m_WidthRectangle)
 			{
 				var rectPose = Instantiate(rectangle, region.transform);
 				rectPose.transform.localPosition = new Vector3(w, 0,l);
+				var origin = region.transform.position + new Vector3(w, m_HeightRegion,l);
+				var direction = -region.transform.up;
+				RayCastUpdate(rectPose, new Ray(origin, direction));
 				var rectScale = rectPose.transform.localScale;
-				rectPose.transform.localScale = new Vector3((rectScale.x*m_WidthCam)/(recScale.x*0.3f),
-					(rectScale.y*m_HeigthCam)/(recScale.y*0.5f), (rectScale.z*m_LengthCam)/(recScale.z*0.3f));
+				rectPose.transform.localScale = new Vector3((rectScale.x*m_WidthCam)/(regScale.x*0.3f),
+					(rectScale.y*m_HeigthCam)/(regScale.y*0.5f), (rectScale.z*m_LengthCam)/(regScale.z*0.3f));
 				rectPose.GetComponentInChildren<Renderer>().material.color = m_NewColor;
 				CloseRectangleSection(rectPose.transform, false);
 				Destroy(rectPose);
@@ -683,7 +710,7 @@ public class Codes : MonoBehaviour
 				RegionMode();
 			}
 		}
-		else if (deleteSectionByselectionMode)
+		else if (deleteSectionBySelectionMode)
 		{
 			DeleteSectionBySelection();
 		}

@@ -413,15 +413,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
       propertyPath: m_LocalScale.x
-      value: 15.604957
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
       propertyPath: m_LocalScale.y
-      value: 4.5088
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
       propertyPath: m_LocalScale.z
-      value: 14.0458145
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 2214232511308916430, guid: 85b8c0be6179543938720988d9a4b041, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7132,8 +7132,11 @@ MonoBehaviour:
   inputCamLength: {fileID: 590340533}
   inputCamOverlap: {fileID: 258767836}
   inputCamDoubleAngle: {fileID: 657678824}
+  inputRegionHeight: {fileID: 742720714}
+  inputRegionWidth: {fileID: 1865075336}
+  inputRegionLength: {fileID: 1170138507}
   rectangleMode: 0
-  deleteSectionByselectionMode: 1
+  deleteSectionBySelectionMode: 0
   doubleCamMode: 0
   regionMode: 0
   rectangle: {fileID: 740367088}
