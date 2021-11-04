@@ -416,8 +416,9 @@ public class Codes : MonoBehaviour
 				//rectPose.transform.SetParent(rectPosesParent.transform);
 				rectPose.tag = "rect";
 				//var origin = region.transform.position + new Vector3(w, m_HeightRegion,l);
-				var origin = rectPose.transform.position + new Vector3(0, m_HeightRegion,0);
+				var origin = rectPose.transform.position + region.transform.up*m_HeightRegion;
 				var direction = -region.transform.up;
+				Debug.DrawLine(origin, origin+direction*5f);
 				RayCastUpdate(rectPose, new Ray(origin, direction));
 				var rectScale = rectPose.transform.localScale;
 				rectPose.transform.localScale = new Vector3((rectScale.x)/(regScale.x),
@@ -429,6 +430,11 @@ public class Codes : MonoBehaviour
 					Destroy(rectPose);
 				}
 			}
+		}
+
+		if (!justViz)
+		{
+			RefreshList();
 		}
 	}
 
