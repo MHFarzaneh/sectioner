@@ -11,10 +11,13 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System.IO;
+using System.Numerics;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 //using Random = System.Random;
 
@@ -79,6 +82,8 @@ public class Codes : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
+		rectPosesParent = new GameObject("parent rectangles");
+		rectPosesParent.transform.position = Vector3.zero;
 		m_IDCounter = 0;
 		m_NewColor = new Color(Random.value, Random.value, Random.value, 0.1f);
 		buttonWrite.onClick.AddListener(WriteToFile);
@@ -175,15 +180,17 @@ public class Codes : MonoBehaviour
 		m_WidthRegion = Convert.ToSingle(w);
 	}
 
-	void RotatePlus()
+	void RotatePlus(GameObject obj)
 	{
-		rectangle.transform.Rotate(Vector3.up * 5);
+		obj.transform.Rotate(Vector3.up * 5);
+		//region.transform.Rotate(Vector3.up * 5);
 	}
 
 
-	void RotateMinus()
+	void RotateMinus(GameObject obj)
 	{
-		rectangle.transform.Rotate(Vector3.up * -5);
+		obj.transform.Rotate(Vector3.up * -5);
+		//region.transform.Rotate(Vector3.up * -5);
 	}
 
 	void ChangeRectangleMode(bool mode)
@@ -194,6 +201,8 @@ public class Codes : MonoBehaviour
 	void ChangeRegionMode(bool mode)
 	{
 		regionMode = mode;
+		rectangle.transform.rotation = Quaternion.identity;
+		region.transform.rotation = Quaternion.identity;
 	}
 
 	void ChangeDeletBySelectionMode(bool mode)
@@ -369,8 +378,8 @@ public class Codes : MonoBehaviour
 		{
 			obj.transform.position = hit.point;
 			obj.transform.rotation = Quaternion.FromToRotation(obj.transform.up, hit.normal) * obj.transform.rotation;
-			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus();
-			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus();
+			if (Input.GetKeyUp(KeyCode.Alpha1)) RotatePlus(obj);
+			if (Input.GetKeyUp(KeyCode.Alpha2)) RotateMinus(obj);
 
 			m_IsRectangleOnPlane = true;
 		}
@@ -378,6 +387,48 @@ public class Codes : MonoBehaviour
 		{
 			obj.transform.position = Vector3.zero;
 			m_IsRectangleOnPlane = false;
+		}
+	}
+
+	GameObject rectPosesParent;
+
+	void RegionMode(bool justViz = false)
+	{
+		GameObject[] rects;
+		rects = GameObject.FindGameObjectsWithTag("rect");
+		foreach (GameObject rect in rects)
+		{
+			Destroy(rect);
+		}
+
+		/*foreach (Transform child in rectPosesParent.transform) {
+			GameObject.Destroy(child.gameObject);
+		}*/
+
+		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
+		var regScale = region.transform.lossyScale;
+		for (float l = -m_LengthRegion /(regScale.z*2f) ; l < m_LengthRegion/(regScale.z*2f) ; l = l + (m_LengthRectangle/regScale.z))
+		{
+			for (float w = -m_WidthRegion/ (regScale.x*2f) ; w < m_WidthRegion/ (regScale.x*2f) ; w = w + (m_WidthRectangle/regScale.x))
+			{
+				var rectPose = Instantiate(rectangle, region.transform);
+				rectPose.transform.localPosition = new Vector3(w, 0,l);
+				//rectPose.transform.SetParent(rectPosesParent.transform);
+				rectPose.tag = "rect";
+				//var origin = region.transform.position + new Vector3(w, m_HeightRegion,l);
+				var origin = rectPose.transform.position + new Vector3(0, m_HeightRegion,0);
+				var direction = -region.transform.up;
+				RayCastUpdate(rectPose, new Ray(origin, direction));
+				var rectScale = rectPose.transform.localScale;
+				rectPose.transform.localScale = new Vector3((rectScale.x)/(regScale.x),
+					(rectScale.y)/(regScale.y), (rectScale.z)/(regScale.z));
+				rectPose.GetComponentInChildren<Renderer>().material.color = m_NewColor;
+				if (!justViz)
+				{
+					CloseRectangleSection(rectPose.transform, false);
+					Destroy(rectPose);
+				}
+			}
 		}
 	}
 
@@ -494,6 +545,7 @@ public class Codes : MonoBehaviour
 
 		dummyRectangle.transform.position = tf.position;
 		dummyRectangle.transform.up = tf.up;
+		dummyRectangle.transform.rotation = tf.rotation;
 
 		var normal = Instantiate(sectionNormal,dummyRectangle.transform);
 		GameObject rectangleInstance;
@@ -622,7 +674,7 @@ public class Codes : MonoBehaviour
 		Debug.Log(angleThreshold);
 
 		// End of column, move one to right and go upward
-		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && allSections.Count < 300 && m_IsRectangleOnPlane && !m_GORight)
+		if ((Mathf.Abs(angleToY) < angleThreshold || Mathf.Abs(angleToY) > 180f-angleThreshold) && allSections.Count < 100 && m_IsRectangleOnPlane && !m_GORight)
 		{
 			Debug.Log("switch");
 			m_IsDownward = !m_IsDownward;
@@ -630,35 +682,12 @@ public class Codes : MonoBehaviour
 			AutoSec();
 
 		}
-		else if (allSections.Count < 900 && m_IsRectangleOnPlane)
+		else if (allSections.Count < 100 && m_IsRectangleOnPlane)
 		{
 			if (m_GORight) m_GORight = false;
 			AutoSec();
 		}
 		//Debug.Log("out");
-	}
-
-	void RegionMode()
-	{
-		//pyramid.transform.localScale = new Vector3(lengthCam, widthCam, heigthCam);
-		var regScale = region.transform.lossyScale;
-		for (float l = -m_LengthRegion /2f ; l < m_LengthRegion/2f ; l = l + m_LengthRectangle)
-		{
-			for (float w = -m_WidthRegion/2f ; w < m_WidthRegion/2f ; w = w + m_WidthRectangle)
-			{
-				var rectPose = Instantiate(rectangle, region.transform);
-				rectPose.transform.localPosition = new Vector3(w, 0,l);
-				var origin = region.transform.position + new Vector3(w, m_HeightRegion,l);
-				var direction = -region.transform.up;
-				RayCastUpdate(rectPose, new Ray(origin, direction));
-				var rectScale = rectPose.transform.localScale;
-				rectPose.transform.localScale = new Vector3((rectScale.x*m_WidthCam)/(regScale.x*0.3f),
-					(rectScale.y*m_HeigthCam)/(regScale.y*0.5f), (rectScale.z*m_LengthCam)/(regScale.z*0.3f));
-				rectPose.GetComponentInChildren<Renderer>().material.color = m_NewColor;
-				CloseRectangleSection(rectPose.transform, false);
-				Destroy(rectPose);
-			}
-		}
 	}
 
 	void DeleteSectionBySelection()
@@ -708,6 +737,10 @@ public class Codes : MonoBehaviour
 			if (Input.GetMouseButtonUp(0) && m_IsRectangleOnPlane)
 			{
 				RegionMode();
+			}
+			else
+			{
+				RegionMode(true);
 			}
 		}
 		else if (deleteSectionBySelectionMode)
