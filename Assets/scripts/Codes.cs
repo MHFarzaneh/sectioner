@@ -30,6 +30,13 @@ public class Codes : MonoBehaviour
 	public GameObject itemTemplate;
 	public GameObject content;
 
+	[FormerlySerializedAs("m_AGV")]
+	public GameObject AGV;
+	public InputField agvH, agvL;
+	float m_agvH =10f, m_agvL=5f;
+	public Toggle toggleAGV;
+	bool m_boolAGV;
+
 	Camera m_Cam;
 	Vector3 m_AnchorPoint;
 	Quaternion m_AnchorRot;
@@ -46,6 +53,7 @@ public class Codes : MonoBehaviour
 	public GameObject normal;
 	[FormerlySerializedAs("m_sectionNormal")]
 	public GameObject sectionNormal;
+
 	public float distanceBetweenBorderNormals = 0.2f;
 	public Button buttonWrite, buttonUndo, buttonResetCam, buttonFinishSection, buttonAutoSec, buttonRemoveAll, buttonQuit;
 	public Toggle toggleRectangleMode, toggleDoubleCamMode, toggleDeleteBySelectionMode, toggleRegionMode;
@@ -82,6 +90,7 @@ public class Codes : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
+		Physics.autoSyncTransforms = true;
 		rectPosesParent = new GameObject("parent rectangles");
 		rectPosesParent.transform.position = Vector3.zero;
 		m_IDCounter = 0;
@@ -112,11 +121,59 @@ public class Codes : MonoBehaviour
 		inputCamDoubleAngle.onValueChanged.AddListener(ChangeCamDoubleAngle);
 		m_Td = transform.Clone();
 		rectangleMode = true;
+		// AGV
+		agvH.onValueChanged.AddListener(ChangeAgvH);
+		agvL.onValueChanged.AddListener(ChangeAgvL);
+		toggleAGV.onValueChanged.AddListener(AGVProcess);
 	}
 
 	private void Awake()
 	{
 		m_Cam = GetComponent<Camera>();
+	}
+
+	void AGVProcess(bool boolAGV)
+	{
+		m_boolAGV = boolAGV;
+		var collider = AGV.GetComponent<BoxCollider>();
+		if (boolAGV)
+		{
+			AGV.transform.localScale = new Vector3(AGV.transform.localScale.x,m_agvH - m_agvL, AGV.transform.localScale.z);
+			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
+
+			foreach (var section in allSections)
+			{
+				if (collider.bounds.Contains(section.normal.transform.position))
+				{
+					HighlightSection(section, 3f);
+				}
+			}
+			collider.enabled = false;
+		}
+		else
+		{
+			collider.enabled = true;
+			AGV.transform.position = new Vector3(AGV.transform.position.x, 2000f, AGV.transform.position.z);
+		}
+	}
+	void ChangeAgvH(string h)
+	{
+		m_agvH = Convert.ToSingle(h);
+		if (m_boolAGV)
+		{
+			AGV.transform.localScale = new Vector3(AGV.transform.localScale.x,m_agvH - m_agvL, AGV.transform.localScale.z);
+			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
+		}
+	}
+
+	void ChangeAgvL(string l)
+	{
+		if (m_boolAGV)
+		{
+			AGV.transform.localScale = new Vector3(AGV.transform.localScale.x,m_agvH - m_agvL, AGV.transform.localScale.z);
+			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
+		}
+		m_agvL = Convert.ToSingle(l);
 	}
 
 	void ChangeCamLength(string l)
@@ -323,21 +380,21 @@ public class Codes : MonoBehaviour
 		RefreshList();
 	}
 
-	UnityAction HighlightSection(Section section)
+	UnityAction HighlightSection(Section section, float sec =1f)
 	{
 		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
-		StartCoroutine(ChangeColorCoroutine(section));
+		StartCoroutine(ChangeColorCoroutine(section, sec));
 		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
 
 		Debug.Log("number "+section.id.ToString());
 		return null;
 	}
 
-	IEnumerator ChangeColorCoroutine(Section section)
+	IEnumerator ChangeColorCoroutine(Section section, float sec = 1f)
 	{
 		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
 		//section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
-		yield return new WaitForSeconds(1);
+		yield return new WaitForSeconds(sec);
 		section.rectangle.GetComponent<MeshRenderer>().material.color = initColor;
 	}
 
