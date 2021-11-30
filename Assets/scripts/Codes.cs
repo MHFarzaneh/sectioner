@@ -147,6 +147,26 @@ public class Codes : MonoBehaviour
 		m_Cam = GetComponent<Camera>();
 	}
 
+	bool CanReachCrane(Section section)
+	{
+		section.normal.gameObject.GetComponent<BoxCollider>().enabled = true;
+		var normalCenter = section.normal.transform.position;
+		var craneCenter = Crane.transform.position;
+
+		Vector3 dir = normalCenter - craneCenter;
+		RaycastHit hit;
+		Ray ray = new Ray(craneCenter,dir);
+		var result = Physics.Raycast(ray, out hit, 100.0f);
+
+		section.normal.GetComponent<BoxCollider>().enabled = false;
+
+		if (result && hit.transform.gameObject == section.normal)
+		{
+				return true;
+		}
+		return false;
+	}
+
 	void CraneProcess(bool boolCrane)
 	{
 		m_boolCrane = boolCrane;
@@ -161,8 +181,8 @@ public class Codes : MonoBehaviour
 				var dist = (section.normal.transform.position - Crane.transform.position).magnitude;
 				if (dist < m_craneR/2)
 				{
-					//if(CanReachGround(m_craneReach, section))
-					HighlightSection(section, Color.green, 3f);
+					if(CanReachCrane(section))
+						HighlightSection(section, Color.green, 3f);
 				}
 			}
 			collider.enabled = false;
