@@ -26,16 +26,25 @@ public class Codes : MonoBehaviour
 	[SerializeField] float speed = 0.5f;
 	[SerializeField] float sensitivity = 1.0f;
 
+	public GameObject floor;
+
 	int m_Index = 0;
 	public GameObject itemTemplate;
 	public GameObject content;
 
 	[FormerlySerializedAs("m_AGV")]
 	public GameObject AGV;
-	public InputField agvH, agvL;
-	float m_agvH =10f, m_agvL=5f;
+	public InputField agvH, agvL, agvReach;
+	float m_agvH = 8f, m_agvL=0f, m_agvReach=3f;
 	public Toggle toggleAGV;
 	bool m_boolAGV;
+
+	[FormerlySerializedAs("m_Crane")]
+	public GameObject Crane;
+	public InputField craneR; //, craneReach;
+	float m_craneR = 50f; //, m_craneReach = 3;
+	public Toggle toggleCrane;
+	bool m_boolCrane;
 
 	Camera m_Cam;
 	Vector3 m_AnchorPoint;
@@ -78,6 +87,7 @@ public class Codes : MonoBehaviour
 		public GameObject normal;
 		public List<Transform> camPoses;
 		public int id;
+		public Color defaultColor;
 	}
 
 	private struct Order
@@ -124,7 +134,12 @@ public class Codes : MonoBehaviour
 		// AGV
 		agvH.onValueChanged.AddListener(ChangeAgvH);
 		agvL.onValueChanged.AddListener(ChangeAgvL);
+		agvReach.onValueChanged.AddListener(ChangeAgvReach);
 		toggleAGV.onValueChanged.AddListener(AGVProcess);
+		// Crane
+		craneR.onValueChanged.AddListener(ChangeCraneR);
+		//craneReach.onValueChanged.AddListener(ChangeCraneReach);
+		toggleCrane.onValueChanged.AddListener(CraneProcess);
 	}
 
 	private void Awake()
@@ -132,20 +147,85 @@ public class Codes : MonoBehaviour
 		m_Cam = GetComponent<Camera>();
 	}
 
+	void CraneProcess(bool boolCrane)
+	{
+		m_boolCrane = boolCrane;
+		var collider = Crane.GetComponent<SphereCollider>();
+		if (boolCrane)
+		{
+			Crane.transform.localScale = new Vector3(m_craneR,m_craneR, m_craneR);
+			Crane.transform.position = new Vector3(Crane.transform.position.x, 0.0f, Crane.transform.position.z);
+
+			foreach (var section in allSections)
+			{
+				var dist = (section.normal.transform.position - Crane.transform.position).magnitude;
+				if (dist < m_craneR/2)
+				{
+					//if(CanReachGround(m_craneReach, section))
+					HighlightSection(section, Color.green, 3f);
+				}
+			}
+			collider.enabled = false;
+		}
+		else
+		{
+			collider.enabled = true;
+			Crane.transform.position = new Vector3(Crane.transform.position.x, 2000f, Crane.transform.position.z);
+		}
+	}
+	void ChangeCraneR(string r)
+	{
+		m_craneR = Convert.ToSingle(r);
+		if (m_boolCrane)
+		{
+			Crane.transform.localScale = new Vector3(m_craneR,m_craneR, m_craneR);
+			Crane.transform.position = new Vector3(Crane.transform.position.x, 0.0f, Crane.transform.position.z);
+		}
+	}
+
+	/*void ChangeCraneReach(string r)
+	{
+		m_craneReach = Convert.ToSingle(r);
+	}*/
+
+	bool CanReachGround(float radius, Section section)
+	{
+		var trs = section.normal.transform;
+
+		for (double i = 0; i < 360; i = i + 10)
+		{
+			Vector3 v = trs.position + Quaternion.AngleAxis((float)i, Vector3.up)*Vector3.left*radius;
+			Debug.DrawLine(trs.position, v, Color.green, 50);
+			RaycastHit hit;
+			Ray ray = new Ray(v+Vector3.up*2,Vector3.down);
+			if (Physics.Raycast(ray, out hit, 100.0f))
+			{
+				if(hit.transform.gameObject.CompareTag("floor"))
+					return true;
+			}
+		}
+		return false;
+	}
+
 	void AGVProcess(bool boolAGV)
 	{
+		floor.GetComponent<BoxCollider>().enabled = true;
+
 		m_boolAGV = boolAGV;
 		var collider = AGV.GetComponent<BoxCollider>();
 		if (boolAGV)
 		{
 			AGV.transform.localScale = new Vector3(AGV.transform.localScale.x,m_agvH - m_agvL, AGV.transform.localScale.z);
-			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
+			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL+(m_agvH - m_agvL)/2, AGV.transform.position.z);
 
 			foreach (var section in allSections)
 			{
 				if (collider.bounds.Contains(section.normal.transform.position))
 				{
-					HighlightSection(section, 3f);
+					if (CanReachGround(m_agvReach, section))
+					{
+						HighlightSection(section, Color.blue, 3f);
+					}
 				}
 			}
 			collider.enabled = false;
@@ -155,6 +235,8 @@ public class Codes : MonoBehaviour
 			collider.enabled = true;
 			AGV.transform.position = new Vector3(AGV.transform.position.x, 2000f, AGV.transform.position.z);
 		}
+
+		floor.GetComponent<BoxCollider>().enabled = false;
 	}
 	void ChangeAgvH(string h)
 	{
@@ -162,7 +244,7 @@ public class Codes : MonoBehaviour
 		if (m_boolAGV)
 		{
 			AGV.transform.localScale = new Vector3(AGV.transform.localScale.x,m_agvH - m_agvL, AGV.transform.localScale.z);
-			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
+			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL+(m_agvH - m_agvL)/2, AGV.transform.position.z);
 		}
 	}
 
@@ -174,6 +256,11 @@ public class Codes : MonoBehaviour
 			AGV.transform.position = new Vector3(AGV.transform.position.x, m_agvL, AGV.transform.position.z);
 		}
 		m_agvL = Convert.ToSingle(l);
+	}
+
+	void ChangeAgvReach(string r)
+	{
+		m_agvReach = Convert.ToSingle(r);
 	}
 
 	void ChangeCamLength(string l)
@@ -307,7 +394,7 @@ public class Codes : MonoBehaviour
 			buttons[0].onClick.AddListener(
 				() =>
 				{
-					HighlightSection(section1);
+					HighlightSection(section1, Color.red);
 				});
 
 			// Delete butoon
@@ -380,11 +467,11 @@ public class Codes : MonoBehaviour
 		RefreshList();
 	}
 
-	UnityAction HighlightSection(Section section, float sec =1f)
+	UnityAction HighlightSection(Section section, Color color, float sec =1f)
 	{
 		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
 		StartCoroutine(ChangeColorCoroutine(section, sec));
-		section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
+		section.rectangle.GetComponent<MeshRenderer>().material.color = color;
 
 		Debug.Log("number "+section.id.ToString());
 		return null;
@@ -392,7 +479,7 @@ public class Codes : MonoBehaviour
 
 	IEnumerator ChangeColorCoroutine(Section section, float sec = 1f)
 	{
-		var initColor = section.rectangle.GetComponent<MeshRenderer>().material.color;
+		var initColor = section.defaultColor;
 		//section.rectangle.GetComponent<MeshRenderer>().material.color = Color.red;
 		yield return new WaitForSeconds(sec);
 		section.rectangle.GetComponent<MeshRenderer>().material.color = initColor;
@@ -627,6 +714,7 @@ public class Codes : MonoBehaviour
 		s.normal = normal;
 		s.borders = new List<GameObject>(m_CurrentNormals);
 		s.rectangle = rectangleInstance;
+		s.defaultColor = m_NewColor;
 		GenerateCamPoses(s);
 		//s.rectangle.AddComponent<BoxCollider>();
 		m_IDCounter++;
